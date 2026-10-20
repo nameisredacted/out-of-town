@@ -11,7 +11,7 @@ is meant to stay small while it holds many cities with only a few places each.
 | App source | `index.html` (one file: markup, CSS, JS) |
 | Build stamp | `version.txt`, and `APP_VERSION` near the top of the script — bump both together |
 | Repo on the Mac | `~/Desktop/Invisible Hand/WIP/eat + drink/out-of-town` |
-| Live site | https://nameisredacted.github.io/out-of-town/ (GitHub Pages, `main`) — repo still to be created |
+| Live site | https://nameisredacted.github.io/out-of-town/ (GitHub Pages, `main`, repo `nameisredacted/out-of-town`, public) |
 | Workbook | OneDrive `the list/Food + Drink/Claude/Out of Town.xlsx` |
 | Tests | `tests/smoke.mjs` (jsdom, in-memory backend, no network, no OneDrive) |
 
@@ -69,9 +69,15 @@ version wholesale.
 ## Auth
 
 Same MSAL app registration as eat + drink (`MSAL_CLIENT_ID`), redirect URI
-`https://nameisredacted.github.io/out-of-town/`. That URI has to be added to the app
-registration (Azure portal ▸ App registrations ▸ the eat + drink app ▸ Authentication ▸
-Single-page application ▸ Add URI) before sign-in works on the new site.
+`https://nameisredacted.github.io/out-of-town/`, added 2026-10-19 to the **food and drink**
+app registration (Azure portal ▸ App registrations ▸ food and drink ▸ Authentication ▸
+Single-page application). Both apps live on the same origin (`nameisredacted.github.io`),
+so they share MSAL's localStorage cache: signed in to one is signed in to the other.
+
+Known noise: MSAL's silent token renewal loads the redirect URI (this page) in a hidden
+iframe, the app boots inside it, and the console logs `block_iframe_reload`. Harmless.
+If it ever matters, skip `init()` when `window.self !== window.top` and no
+`window.OOT_BACKEND` is set (the preview runs in an iframe on purpose).
 
 ## Preview
 
