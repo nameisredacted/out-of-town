@@ -141,7 +141,7 @@
 
 <script>
 /* ====== CONFIG ====== */
-const APP_VERSION = "2026.10.13-1";
+const APP_VERSION = "2026.10.20-1";
 const MSAL_CLIENT_ID = "7175d0f0-c775-4157-87de-0d85914a1350";
 const REDIRECT_URI = "https://nameisredacted.github.io/out-of-town/";
 const GRAPH_SCOPES = ["Files.ReadWrite", "User.Read"];
@@ -277,6 +277,7 @@ function cityCentroids(){
   m.forEach(c => { c.lat /= c.n; c.lng /= c.n; });
   return m;
 }
+const SEARCH_CAP = 150;
 const RANK = { y: 0, '': 1, '-': 2, n: 3 };
 function sortPlaces(list){
   return list.slice().sort((a, b) =>
@@ -336,7 +337,8 @@ function render(){
       [p.name, p.category, p.toOrder, p.ordered, p.notes].some(f => norm(f).includes(q))));
     main.innerHTML =
       (cities.length ? `<div class="region">cities</div>` + cities.map(c => cityRow(c, counts.get(c))).join('') : '') +
-      (hits.length ? `<div class="region">places</div>` + hits.map(v => placeItem(v, true)).join('') : '') +
+      (hits.length ? `<div class="region">places</div>` + hits.slice(0, SEARCH_CAP).map(v => placeItem(v, true)).join('') +
+        (hits.length > SEARCH_CAP ? `<div class="note">showing ${SEARCH_CAP} of ${hits.length.toLocaleString()} — keep typing to narrow it down.</div>` : '') : '') +
       (!cities.length && !hits.length ? `<div class="note">nothing matches ${esc(state.query)} — tap + to add it.</div>` : '');
     return;
   }
@@ -386,7 +388,10 @@ $('main').addEventListener('click', e => {
   if(e.target.id === 'backBtn'){ state.view = 'index'; render(); window.scrollTo(0, 0); return; }
   if(e.target.id === 'addHere'){ openForm(null, state.city); }
 });
-$('q').addEventListener('input', () => { state.query = $('q').value; render(); });
+/* With thousands of places a render per keystroke stalls a phone, so input
+   waits for a short pause and search shows at most SEARCH_CAP places. */
+let qTimer = null;
+$('q').addEventListener('input', () => { clearTimeout(qTimer); qTimer = setTimeout(() => { state.query = $('q').value; render(); }, 150); });
 $('q').addEventListener('keydown', e => {
   if(e.key === 'Enter') $('q').blur();
   if(e.key === 'Escape'){ $('q').value = ''; state.query = ''; render(); }

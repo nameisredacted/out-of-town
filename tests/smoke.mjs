@@ -160,11 +160,11 @@ function ok(cond, msg){ if(cond){ pass++; } else { fail++; console.log('FAIL:', 
 {
   const { d, dom } = await app();
   const q = d.getElementById('q');
-  q.value = 'sedona'; q.dispatchEvent(new dom.window.Event('input')); await tick(dom);
+  q.value = 'sedona'; q.dispatchEvent(new dom.window.Event('input')); await tick(dom, 250);
   ok(d.querySelectorAll('.city').length === 1 && d.querySelectorAll('.item').length >= 1, 'city + place hit');
-  q.value = 'chocolate'; q.dispatchEvent(new dom.window.Event('input')); await tick(dom);
+  q.value = 'chocolate'; q.dispatchEvent(new dom.window.Event('input')); await tick(dom, 250);
   ok(d.querySelector('.item-name').textContent === 'Wild Crumb', 'ordered item searchable');
-  q.value = 'zzzz'; q.dispatchEvent(new dom.window.Event('input')); await tick(dom);
+  q.value = 'zzzz'; q.dispatchEvent(new dom.window.Event('input')); await tick(dom, 250);
   ok(d.querySelector('.note').textContent.includes('nothing matches'), 'empty result copy');
 }
 
@@ -188,6 +188,17 @@ function ok(cond, msg){ if(cond){ pass++; } else { fail++; console.log('FAIL:', 
   const first = d.querySelector('.city').dataset.city;
   ok(first === 'Sedona, AZ', 'nearest to Phoenix is Sedona: ' + first);
   ok(d.querySelector('.city .cc').textContent.includes('mi'), 'distance shown');
+}
+
+// 12. search over thousands of places is capped
+{
+  const many = [];
+  for (let i = 0; i < 400; i++) many.push({ name: 'Cafe ' + i, city: 'Paris, France', lat: '48.85', lng: '2.35' });
+  const { d, dom } = await app(many);
+  const q = d.getElementById('q');
+  q.value = 'cafe'; q.dispatchEvent(new dom.window.Event('input')); await tick(dom, 250);
+  ok(d.querySelectorAll('.item').length === 150, 'search capped at 150: ' + d.querySelectorAll('.item').length);
+  ok([...d.querySelectorAll('.note')].some(n => n.textContent.includes('of 400')), 'cap message');
 }
 
 console.log(`${pass} passed, ${fail} failed`);

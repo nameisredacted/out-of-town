@@ -95,3 +95,19 @@ the preview is saved.
   own notes named only non-Bay-Area cities) became **31 places** here, because three of
   those four name two cities each. Their 5 Menu Details rows became the `Ordered` column.
   Coordinates: Census `exact` rows kept theirs; the rest took the Nominatim city centre.
+- 2026-10-19: 6 **San Luis Obispo, CA** places and their 10 ordered items moved in (37 places,
+  17 cities). They were in the hometown sheet before the first removal but missed it: that pass
+  matched a city list frozen at the 2026-10-13 check. Any later sweep must classify every
+  Location against the nine-county line, not reuse an earlier list. Backups:
+  `archive/Out of Town (pre-SLO 20261019).xlsx`, `archive/Food + Drink (pre-move-out SLO 20261019).xlsx`.
+  Left in eat + drink on purpose (no city, so the hometown rule keeps them): Coast Starlight
+  (Amtrak), Eureka! and Rookies Sports Lodge (`Chain`).
+- 2026-10-19: every place with no Rating was removed — the user called them mistakes (never
+  been to Miami). 14 rows went, including Wild Crumb and Centurión Lounge SEA, which carried
+  ordered items. Silver Bar & Cocktail Lounge was kept and rated `-` (set through the app, the
+  first live write). Now 23 places, 12 cities. Backup:
+  `archive/Out of Town (pre-unrated-cleanup 20261019).xlsx`.
+- 2026-10-19: Wild Crumb (Bozeman, MT) and Centurión Lounge SEA (Seattle, WA) restored from that
+  backup with every field as it was, rated `-`. 25 places, 14 cities.
+- 2026-10-20: search input waits 150 ms after typing and lists at most 150 places
+  (`SEARCH_CAP`), with a "keep typing" line — needed once the list passed 6,000 rows.
