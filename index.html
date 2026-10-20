@@ -31,8 +31,20 @@
   .ver a{color:var(--accent);text-decoration:underline;cursor:pointer;}
   main{padding:6px 14px 96px;max-width:640px;margin:0 auto;}
   .note{color:var(--muted);font-size:13px;padding:8px 2px;}
-  .region{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:18px 2px 4px;}
-  .subregion{font-size:13px;font-weight:600;color:var(--text);margin:12px 2px 2px;}
+  /* Three levels that must read apart at a glance: country (large, bold, ruled),
+     state (small caps in the accent), city (plain body text). */
+  .region{font-size:19px;font-weight:700;color:var(--text);letter-spacing:-.01em;margin:26px 0 2px;padding:0 2px 6px;border-bottom:2px solid var(--text);}
+  details.country > summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
+  details.country > summary::-webkit-details-marker{display:none;}
+  details.country > summary > span:first-child::before{content:'▸';display:inline-block;width:1em;color:var(--muted);transition:transform .15s ease;}
+  details.country[open] > summary > span:first-child::before{transform:rotate(90deg);}
+  details.country > summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  .rcount{font-size:12px;font-weight:400;color:var(--muted);letter-spacing:0;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  details.country:first-of-type > summary{margin-top:14px;}
+  details.country:not([open]) > summary{border-bottom:1px solid var(--border);padding-bottom:10px;margin-top:14px;}
+  .subregion{font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin:16px 2px 0;padding-bottom:4px;}
+  .city .cn{font-weight:400;}
+  .city .cc{font-variant-numeric:tabular-nums;}
   .city{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:11px 2px;border-bottom:1px solid var(--border);cursor:pointer;}
   .city .cn{font-size:15px;}
   .city .cc{font-size:13px;color:var(--muted);white-space:nowrap;}
@@ -142,7 +154,7 @@
 
 <script>
 /* ====== CONFIG ====== */
-const APP_VERSION = "2026.10.20-2";
+const APP_VERSION = "2026.10.20-4";
 const MSAL_CLIENT_ID = "7175d0f0-c775-4157-87de-0d85914a1350";
 const REDIRECT_URI = "https://nameisredacted.github.io/out-of-town/";
 const GRAPH_SCOPES = ["Files.ReadWrite", "User.Read"];
@@ -387,14 +399,33 @@ function render(){
     (a === LAST) - (b === LAST) || (b === 'United States') - (a === 'United States') || a.localeCompare(b));
   const section = g => {
     const list = groups.get(g);
-    if(g !== 'United States') return `<div class="region">${esc(g)}</div>` + list.map(c => cityRow(c, counts.get(c), null, g !== LAST)).join('');
-    const byState = new Map();
-    list.forEach(c => { const st = regionOf(c); (byState.get(st) || byState.set(st, []).get(st)).push(c); });
-    return `<div class="region">United States</div>` + [...byState.keys()].sort((a, b) => a.localeCompare(b))
-      .map(st => `<div class="subregion">${esc(st)}</div>` + byState.get(st).map(c => cityRow(c, counts.get(c), null, true)).join('')).join('');
+    const n = list.reduce((a, c) => a + counts.get(c), 0);
+    let body;
+    if(g !== 'United States'){
+      body = list.map(c => cityRow(c, counts.get(c), null, g !== LAST)).join('');
+    }else{
+      const byState = new Map();
+      list.forEach(c => { const st = regionOf(c); (byState.get(st) || byState.set(st, []).get(st)).push(c); });
+      body = [...byState.keys()].sort((a, b) => a.localeCompare(b))
+        .map(st => `<div class="subregion">${esc(st)}</div>` + byState.get(st).map(c => cityRow(c, counts.get(c), null, true)).join('')).join('');
+    }
+    return `<details class="country" data-g="${esc(g)}"${openCountries.has(g) ? ' open' : ''}>
+      <summary class="region"><span>${esc(g)}</span><span class="rcount">${n.toLocaleString()} ${n === 1 ? 'place' : 'places'} · ${list.length} ${list.length === 1 ? 'city' : 'cities'}</span></summary>${body}</details>`;
   };
   main.innerHTML = `<div class="note">${counts.size} cities · ${places.length} places</div>` + order.map(section).join('');
 }
+
+/* Which countries are expanded is a per-browser convenience: kept in
+   localStorage, never in the workbook; the index works without it. */
+const OPEN_KEY = 'oot.openCountries';
+const openCountries = new Set((() => { try { return JSON.parse(localStorage.getItem(OPEN_KEY) || '[]'); } catch(e){ return []; } })());
+function saveOpen(){ try { localStorage.setItem(OPEN_KEY, JSON.stringify([...openCountries])); } catch(e){} }
+$('main').addEventListener('toggle', e => {
+  const d = e.target;
+  if(!d.matches || !d.matches('details.country')) return;
+  if(d.open) openCountries.add(d.dataset.g); else openCountries.delete(d.dataset.g);
+  saveOpen();
+}, true);
 
 /* ---------- navigation ---------- */
 function openCity(c){

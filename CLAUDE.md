@@ -37,6 +37,10 @@ Vacaville (Solano) stayed.
   every other city is grouped under its country (the part after the last comma). City rows
   under a heading show only the town — the heading already says the state or country.
   Search results and the near-me list keep the full `City, ST` / `City, Country`.
+  Each country is a collapsible `<details class="country">` (2026.10.20-4), closed by default,
+  its summary showing places · cities; which ones are open is remembered per browser in
+  `localStorage` (`oot.openCountries`), never in the workbook. Headings: country 19px bold with
+  a rule, state 12px uppercase in the accent, cities plain body text.
 - **Ordered** replaces eat + drink's Menu Details table: items separated by `; `.
   The detail sheet appends one at a time.
 - **Rating** is `y` / `-` / `n` / blank, same as eat + drink.

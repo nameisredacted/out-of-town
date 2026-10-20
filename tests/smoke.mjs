@@ -49,12 +49,13 @@ function ok(cond, msg){ if(cond){ pass++; } else { fail++; console.log('FAIL:', 
 // 1. index groups cities by state
 {
   const { d } = await app();
-  const regions = [...d.querySelectorAll('.region')].map(e => e.textContent);
+  const regions = [...d.querySelectorAll('.region')].map(e => (e.firstElementChild || e).textContent);
   ok(JSON.stringify(regions) === JSON.stringify(['United States']), 'one US heading: ' + regions);
   const states = [...d.querySelectorAll('.subregion')].map(e => e.textContent);
   ok(JSON.stringify(states) === JSON.stringify(['Arizona','Montana','New York']), 'states under it: ' + states);
   ok([...d.querySelectorAll('.city .cn')].map(e => e.textContent).join('|') === 'Chandler|Sedona|Bozeman|New York'.replace('Chandler|', ''), 'city names without state: ' + [...d.querySelectorAll('.city .cn')].map(e => e.textContent));
   ok(d.querySelectorAll('.city').length === 3, 'three cities');
+  ok(d.querySelectorAll('details.country').length === 1 && !d.querySelector('details.country').open, 'country collapsed by default');
   ok(d.querySelector('.note').textContent.includes('3 cities · 5 places'), 'count line');
 }
 
@@ -208,7 +209,7 @@ function ok(cond, msg){ if(cond){ pass++; } else { fail++; console.log('FAIL:', 
 {
   const rows = seed.concat([{ name: 'Septime', city: 'Paris, France', lat: '48.85', lng: '2.38' }, { name: 'Noma', city: 'Copenhagen, Denmark', lat: '55.68', lng: '12.61' }]);
   const { d } = await app(rows);
-  const regions = [...d.querySelectorAll('.region')].map(e => e.textContent);
+  const regions = [...d.querySelectorAll('.region')].map(e => (e.firstElementChild || e).textContent);
   ok(JSON.stringify(regions) === JSON.stringify(['United States', 'Denmark', 'France']), 'country order: ' + regions);
   ok([...d.querySelectorAll('.city .cn')].some(e => e.textContent === 'Paris'), 'Paris shown without France');
 }
