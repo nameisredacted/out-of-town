@@ -48,7 +48,12 @@ Vacaville (Solano) stayed.
   rule ends where the country rules end), the detail sheet, and the + button (pinned 20px
   inside the column's right edge on wide screens). Pixel values follow the H artboard:
   16px side gutters for header and list, header padding 14px top / 10px bottom with 10px
-  between title, search and the near-me row, list padding 10px top, count line 4px / 6px. Contrast comes from weight and the
+  between title, search and the near-me row, list padding 10px top, count line 4px / 6px.
+  Wide windows (2026.10.20-8): a small script at the top of `<body>` sets
+  `zoom = clamp(1, innerWidth / 640, 1.5)` on `<html>`, so the 640px layout scales up to fill
+  the window instead of sitting small beside empty space; past 960px wide it stops at 1.5x.
+  It also sets `--vw` (window width in zoomed px) for the + button, because `100vw` ignores
+  the zoom. Contrast comes from weight and the
   one rule only; no colour, capitals, bands or icons.
 - **Ordered** replaces eat + drink's Menu Details table: items separated by `; `.
   The detail sheet appends one at a time.
