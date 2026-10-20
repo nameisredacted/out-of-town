@@ -1,0 +1,8 @@
+{
+  "name": "out-of-town",
+  "private": true,
+  "version": "0.0.0",
+  "description": "out of town - stripped-down city directory over a OneDrive workbook",
+  "scripts": { "test": "node tests/smoke.mjs" },
+  "dependencies": { "jsdom": "^26.1.0" }
+}

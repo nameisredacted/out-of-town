@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>out of town</title>
+<!--MSAL--><script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.27.0/lib/msal-browser.min.js"></script><!--/MSAL-->
+<style>
+  :root{
+    color-scheme:light;
+    --bg:#ffffff; --card:#ffffff; --card2:#f4f4f2; --text:#000000; --muted:#666666;
+    --accent:#0000cc; --good:#0a7a24; --bad:#cc0000; --border:#cccccc;
+  }
+  *{box-sizing:border-box;}
+  html,body{background:var(--bg);}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--text);}
+  header{position:sticky;top:env(safe-area-inset-top, 0px);background:var(--bg);padding:12px 14px 8px;z-index:10;border-bottom:1px solid var(--border);}
+  .titlerow{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:0 0 10px;}
+  h1{font-size:18px;margin:0;font-weight:600;}
+  .home{font-size:12px;color:var(--accent);text-decoration:none;}
+  .searchrow{position:relative;}
+  .search{width:100%;padding:10px 34px 10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:16px;}
+  .clearx{position:absolute;top:50%;right:8px;transform:translateY(-50%);background:none;border:none;color:var(--muted);font-size:20px;line-height:1;cursor:pointer;padding:2px 6px;display:none;}
+  .row{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;align-items:center;}
+  .chip{font-size:13px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);cursor:pointer;user-select:none;}
+  .chip.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .ver{font-size:11px;color:var(--muted);}
+  .ver a{color:var(--accent);text-decoration:underline;cursor:pointer;}
+  main{padding:6px 14px 96px;max-width:640px;margin:0 auto;}
+  .note{color:var(--muted);font-size:13px;padding:8px 2px;}
+  .region{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:16px 2px 4px;}
+  .city{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:11px 2px;border-bottom:1px solid var(--border);cursor:pointer;}
+  .city .cn{font-size:15px;}
+  .city .cc{font-size:13px;color:var(--muted);white-space:nowrap;}
+  .back{background:none;border:none;color:var(--accent);font-size:14px;cursor:pointer;padding:8px 0 2px;}
+  .cityhead h2{font-size:21px;margin:4px 0 2px;}
+  .cityhead .sub{color:var(--muted);font-size:13px;margin-bottom:10px;}
+  .item{border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px;cursor:pointer;background:var(--card);}
+  .item-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+  .item-name{font-size:15px;font-weight:600;}
+  .item-sub{font-size:13px;color:var(--muted);margin-top:3px;}
+  .toorder{margin-top:5px;font-size:12px;}
+  .tolabel{color:var(--muted);}
+  .badge{font-size:12px;border-radius:6px;padding:2px 7px;flex-shrink:0;font-weight:600;}
+  .badge.y{background:rgba(10,122,36,.12);color:var(--good);}
+  .badge.n{background:rgba(204,0,0,.10);color:var(--bad);}
+  .badge.d{background:rgba(102,102,102,.12);color:var(--muted);}
+  .closed{font-size:10px;font-weight:700;letter-spacing:.05em;color:var(--bad);border:1px solid var(--bad);border-radius:4px;padding:0 4px;margin-left:6px;vertical-align:2px;}
+  .item.isclosed .item-name{color:var(--bad);}
+  .addcity{display:block;width:100%;padding:12px;margin-top:6px;text-align:center;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--accent);font-size:14px;cursor:pointer;}
+  .fab{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom, 0px));right:20px;width:54px;height:54px;border-radius:50%;background:var(--accent);color:#fff;font-size:28px;display:flex;align-items:center;justify-content:center;border:none;box-shadow:0 4px 14px rgba(0,0,0,.3);z-index:20;cursor:pointer;}
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:30;display:none;}
+  .overlay.open{display:block;}
+  .sheet{position:fixed;left:0;right:0;bottom:0;max-height:90vh;overflow-y:auto;background:var(--card);border-radius:16px 16px 0 0;padding:20px 19px calc(26px + env(safe-area-inset-bottom, 0px));z-index:31;transform:translateY(105%);visibility:hidden;transition:transform .2s ease,visibility 0s linear .2s;font-size:14px;max-width:640px;margin:0 auto;}
+  .sheet.open{transform:translateY(0);visibility:visible;transition:transform .2s ease;}
+  .sheet h2{margin:0 26px 5px 0;font-size:21px;line-height:1.25;}
+  .sheet .sub{color:var(--muted);font-size:14px;margin-bottom:12px;}
+  .close-x{position:absolute;top:12px;right:12px;background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;}
+  .field input,.field select,.field textarea{width:100%;padding:10px 11px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:16px;font-family:inherit;}
+  .field textarea{min-height:56px;resize:vertical;}
+  .field .hint{font-size:12px;color:var(--muted);margin-top:4px;}
+  .field .val{white-space:pre-wrap;}
+  .maplink{color:var(--accent);text-decoration:none;}
+  .rateRow{display:flex;gap:6px;margin:2px 0 14px;}
+  .rateBtn{flex:1;padding:11px 0;text-align:center;border-radius:9px;border:1px solid var(--border);background:var(--card2);color:var(--muted);font-size:14px;font-weight:600;cursor:pointer;}
+  .rateBtn.y.on{color:var(--good);border-color:var(--good);background:rgba(10,122,36,.10);}
+  .rateBtn.n.on{color:var(--bad);border-color:var(--bad);background:rgba(204,0,0,.08);}
+  .rateBtn.d.on{color:var(--text);border-color:var(--text);}
+  .inline{display:flex;gap:6px;}
+  .inline input{flex:1;}
+  .btnrow{display:flex;gap:8px;margin-top:14px;}
+  .btn{flex:1;padding:12px;border-radius:9px;border:none;font-size:14px;font-weight:600;cursor:pointer;}
+  .btn.primary{background:var(--accent);color:#fff;}
+  .btn.ghost{background:var(--card2);color:var(--text);border:1px solid var(--border);}
+  .btn.small{flex:none;padding:10px 14px;}
+  .btn.danger{background:none;color:var(--bad);border:1px solid var(--bad);}
+  .gate{position:fixed;inset:0;background:var(--bg);z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;}
+  .gate p{color:var(--muted);font-size:14px;max-width:320px;margin-bottom:20px;}
+  .spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .errbox{background:rgba(204,0,0,.06);border:1px solid var(--bad);color:var(--bad);border-radius:8px;padding:10px;font-size:13px;margin-top:12px;max-width:340px;word-break:break-word;}
+  .banner{background:var(--card2);border-bottom:1px solid var(--border);font-size:12px;color:var(--muted);padding:6px 14px;text-align:center;}
+  ::placeholder{color:var(--muted);}
+</style>
+</head>
+<body>
+
+<div class="gate" id="gate"><div id="gateInner"><div class="spinner"></div><p>loading…</p></div></div>
+
+<div id="previewBanner" class="banner" style="display:none">preview — nothing here is saved</div>
+
+<header id="appHeader" style="display:none">
+  <div class="titlerow">
+    <h1>out of town</h1>
+    <a class="home" id="homeLink" href="https://nameisredacted.github.io/food-drink-app/">eat + drink ↗</a>
+  </div>
+  <div class="searchrow">
+    <input id="q" class="search" type="search" placeholder="search…" autocapitalize="none" autocomplete="off" enterkeyhint="search">
+    <button class="clearx" id="clearQ" aria-label="clear">×</button>
+  </div>
+  <div class="row">
+    <div class="chip" id="nearBtn">near me</div>
+    <span class="ver" id="ver"></span>
+  </div>
+</header>
+
+<main id="main" style="display:none"></main>
+<button class="fab" id="fab" style="display:none" aria-label="add a place">+</button>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="sheet" id="detailSheet">
+  <button class="close-x" data-close>×</button>
+  <div id="detailBody"></div>
+</div>
+
+<div class="sheet" id="formSheet">
+  <button class="close-x" data-close>×</button>
+  <h2 id="formTitle">add a place</h2>
+  <div class="field"><label>Name</label><input id="f_name" autocomplete="off"></div>
+  <div class="field"><label>City</label><input id="f_city" list="cityList" autocomplete="off" placeholder="city, state">
+    <div class="hint" id="cityHint">e.g. Sedona, AZ — or Paris, France</div></div>
+  <div class="field"><label>Category</label><input id="f_category" list="catList" autocomplete="off" autocapitalize="words"></div>
+  <div class="field"><label>Rating</label><select id="f_rating"><option value=""></option><option value="y">y (good)</option><option value="-">-</option><option value="n">n (no)</option></select></div>
+  <div class="field"><label>To Order</label><input id="f_toOrder" autocomplete="off"></div>
+  <div class="field"><label>Ordered</label><textarea id="f_ordered" placeholder="separate items with ;"></textarea></div>
+  <div class="field"><label>Notes</label><textarea id="f_notes"></textarea></div>
+  <div class="field"><label>Address</label><input id="f_address" autocomplete="off"></div>
+  <div class="field"><label>Closed</label><input id="f_closed" autocomplete="off" placeholder="blank if open — e.g. closed Jun 2026"></div>
+  <div class="btnrow"><button class="btn primary" id="saveBtn">save</button></div>
+  <div class="btnrow" id="deleteRow" style="display:none"><button class="btn danger" id="deleteBtn">delete this place</button></div>
+</div>
+
+<datalist id="cityList"></datalist>
+<datalist id="catList"></datalist>
+
+<script>
+/* ====== CONFIG ====== */
+const APP_VERSION = "2026.10.13-1";
+const MSAL_CLIENT_ID = "7175d0f0-c775-4157-87de-0d85914a1350";
+const REDIRECT_URI = "https://nameisredacted.github.io/out-of-town/";
+const GRAPH_SCOPES = ["Files.ReadWrite", "User.Read"];
+const FILE_PATH = "the list/Food + Drink/Claude/Out of Town.xlsx";
+const SHEET = "Places";
+const TABLE = "PlacesTable";
+/* ===================== */
+
+/* Column order of PlacesTable. Every record written lists all of these. */
+const COLS = ['name','category','city','rating','toOrder','ordered','notes','address','lat','lng','closed'];
+
+/* ---------- backend ----------
+   The app talks to a backend with four calls: list, add, update, remove.
+   Live, that is the Graph Excel table API. The preview and the tests hand
+   one in as window.OOT_BACKEND instead, so neither touches the workbook. */
+
+function rowToObj(vals, index){
+  const o = { index };
+  COLS.forEach((c, i) => { const x = vals[i]; o[c] = x === null || x === undefined ? '' : String(x).trim(); });
+  return o;
+}
+function objToRow(o){ return COLS.map(c => o[c] === undefined || o[c] === null ? '' : o[c]); }
+
+function graphBackend(){
+  const msalInstance = new msal.PublicClientApplication({
+    auth: { clientId: MSAL_CLIENT_ID, authority: "https://login.microsoftonline.com/common", redirectUri: REDIRECT_URI },
+    cache: { cacheLocation: "localStorage" }
+  });
+  const enc = p => p.split('/').map(encodeURIComponent).join('/');
+  const base = () => `https://graph.microsoft.com/v1.0/me/drive/root:/${enc(FILE_PATH)}:/workbook`;
+  const rowsPath = `/worksheets('${encodeURIComponent(SHEET)}')/tables('${TABLE}')/rows`;
+  async function token(){
+    const accounts = msalInstance.getAllAccounts();
+    if(!accounts.length) throw new Error('not signed in');
+    try{ return (await msalInstance.acquireTokenSilent({ scopes: GRAPH_SCOPES, account: accounts[0] })).accessToken; }
+    catch(e){ await msalInstance.acquireTokenRedirect({ scopes: GRAPH_SCOPES }); throw e; }
+  }
+  async function graph(method, path, body){
+    const res = await fetch(path.startsWith('http') ? path : base() + path, {
+      method, headers: { 'Authorization': 'Bearer ' + await token(), 'Content-Type': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined
+    });
+    if(!res.ok) throw new Error(`OneDrive ${method} failed: ${res.status} ${await res.text()}`);
+    return res.status === 204 ? null : res.json();
+  }
+  return {
+    live: true,
+    async start(){
+      await msalInstance.initialize();
+      await msalInstance.handleRedirectPromise();
+      return msalInstance.getAllAccounts().length > 0;
+    },
+    signIn(){ msalInstance.loginRedirect({ scopes: GRAPH_SCOPES }); },
+    async list(){
+      let out = [], next = rowsPath;
+      while(next){
+        const d = await graph('GET', next);
+        out = out.concat(d.value);
+        next = d['@odata.nextLink'] || null;
+      }
+      return out.map((r, i) => rowToObj(r.values[0], r.index !== undefined ? r.index : i));
+    },
+    async rowAt(index){
+      const d = await graph('GET', `${rowsPath}/itemAt(index=${index})`);
+      return d ? rowToObj(d.values[0], index) : null;
+    },
+    async add(rec){
+      const d = await graph('POST', rowsPath, { values: [objToRow(rec)] });
+      return d && d.index !== undefined ? d.index : null;
+    },
+    async update(index, rec){ await graph('PATCH', `${rowsPath}/itemAt(index=${index})`, { values: [objToRow(rec)] }); },
+    async remove(index){ await graph('DELETE', `${rowsPath}/itemAt(index=${index})`); }
+  };
+}
+
+/* ---------- helpers ---------- */
+const $ = id => document.getElementById(id);
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function norm(s){ return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
+const key = v => norm(v.name) + '|' + norm(v.city);
+const isClosed = v => !!(v.closed || '').trim();
+
+const STATES = {AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',DE:'Delaware',DC:'District of Columbia',FL:'Florida',GA:'Georgia',HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming',PR:'Puerto Rico'};
+
+/* "Sedona, AZ" -> Arizona; "Paris, France" -> France; "Sedona" -> no region */
+function regionOf(city){
+  const parts = city.split(',').map(s => s.trim()).filter(Boolean);
+  if(parts.length < 2) return 'no state given';
+  const last = parts[parts.length - 1];
+  return STATES[last.toUpperCase()] || last;
+}
+function cityName(city){ return city.split(',')[0].trim(); }
+
+/* Identity is name + city, so "sedona, az" and "Sedona, AZ" must not become two
+   cities. A typed city snaps to an existing spelling when it matches one; a new
+   one gets its state code upper-cased and, if typed all lower-case, title case. */
+function canonCity(raw){
+  let c = String(raw || '').replace(/\s+/g, ' ').replace(/\s*,\s*/g, ', ').trim().replace(/,$/, '');
+  if(!c) return '';
+  const hit = allCities().find(x => norm(x) === norm(c));
+  if(hit) return hit;
+  if(c === c.toLowerCase()) c = c.replace(/\b([a-z])/g, m => m.toUpperCase());
+  return c.replace(/, ([A-Za-z]{2})$/, (m, st) => STATES[st.toUpperCase()] ? ', ' + st.toUpperCase() : m);
+}
+
+function miles(a, b){
+  const R = 3958.8, r = x => x * Math.PI / 180;
+  const dLat = r(b.lat - a.lat), dLng = r(b.lng - a.lng);
+  const h = Math.sin(dLat/2)**2 + Math.cos(r(a.lat)) * Math.cos(r(b.lat)) * Math.sin(dLng/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+function fmtMi(m){ return m < 10 ? m.toFixed(1) + ' mi' : Math.round(m).toLocaleString() + ' mi'; }
+
+/* ---------- state ---------- */
+let backend = null;
+let places = [];
+let lastLoad = 0, lastWrite = 0;
+const state = { view: 'index', city: '', query: '', near: null };
+let openPlace = null;      // the record a sheet was opened with
+let editing = null;        // null = adding
+
+function allCities(){
+  return [...new Set(places.map(p => p.city).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+}
+function cityCentroids(){
+  const m = new Map();
+  places.forEach(p => {
+    const lat = parseFloat(p.lat), lng = parseFloat(p.lng);
+    if(!p.city || !isFinite(lat) || !isFinite(lng)) return;
+    const c = m.get(p.city) || { lat: 0, lng: 0, n: 0 };
+    c.lat += lat; c.lng += lng; c.n++; m.set(p.city, c);
+  });
+  m.forEach(c => { c.lat /= c.n; c.lng /= c.n; });
+  return m;
+}
+const RANK = { y: 0, '': 1, '-': 2, n: 3 };
+function sortPlaces(list){
+  return list.slice().sort((a, b) =>
+    (isClosed(a) - isClosed(b)) ||
+    ((RANK[a.rating] ?? 1) - (RANK[b.rating] ?? 1)) ||
+    a.name.localeCompare(b.name));
+}
+
+async function loadAll(){
+  places = await backend.list();
+  lastLoad = Date.now();
+  refreshLists();
+}
+function refreshLists(){
+  $('cityList').innerHTML = allCities().map(c => `<option value="${esc(c)}">`).join('');
+  const cats = new Map();
+  places.forEach(p => { if(p.category) cats.set(p.category, (cats.get(p.category) || 0) + 1); });
+  $('catList').innerHTML = [...cats.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .map(([c]) => `<option value="${esc(c)}">`).join('');
+}
+
+/* ---------- rendering ---------- */
+function badge(r){
+  r = (r || '').trim();
+  if(!r) return '';
+  return `<div class="badge ${r === 'y' ? 'y' : r === 'n' ? 'n' : 'd'}">${esc(r)}</div>`;
+}
+function closedTag(v){ return isClosed(v) ? '<span class="closed">CLOSED</span>' : ''; }
+
+function placeItem(v, showCity){
+  const sub = [v.category, showCity ? v.city : ''].filter(Boolean).join(' · ');
+  return `<div class="item ${isClosed(v) ? 'isclosed' : ''}" data-key="${esc(key(v))}">
+    <div class="item-top"><div class="item-name">${esc(v.name)}${closedTag(v)}</div>${badge(v.rating)}</div>
+    ${sub ? `<div class="item-sub">${esc(sub)}</div>` : ''}
+    ${v.toOrder ? `<div class="toorder"><span class="tolabel">to order:</span> ${esc(v.toOrder)}</div>` : ''}
+  </div>`;
+}
+function cityRow(c, count, right){
+  return `<div class="city" data-city="${esc(c)}"><span class="cn">${esc(c)}</span><span class="cc">${right || (count + (count === 1 ? ' place' : ' places'))}</span></div>`;
+}
+function countByCity(){
+  const m = new Map();
+  places.forEach(p => { if(p.city) m.set(p.city, (m.get(p.city) || 0) + 1); });
+  return m;
+}
+
+function render(){
+  const main = $('main');
+  $('clearQ').style.display = state.query ? '' : 'none';
+  $('nearBtn').classList.toggle('active', !!state.near);
+  const q = norm(state.query);
+
+  if(q){
+    const cities = allCities().filter(c => norm(c).includes(q));
+    const counts = countByCity();
+    const hits = sortPlaces(places.filter(p =>
+      [p.name, p.category, p.toOrder, p.ordered, p.notes].some(f => norm(f).includes(q))));
+    main.innerHTML =
+      (cities.length ? `<div class="region">cities</div>` + cities.map(c => cityRow(c, counts.get(c))).join('') : '') +
+      (hits.length ? `<div class="region">places</div>` + hits.map(v => placeItem(v, true)).join('') : '') +
+      (!cities.length && !hits.length ? `<div class="note">nothing matches ${esc(state.query)} — tap + to add it.</div>` : '');
+    return;
+  }
+
+  if(state.view === 'city'){
+    const list = sortPlaces(places.filter(p => p.city === state.city));
+    const shut = list.filter(isClosed).length;
+    main.innerHTML = `
+      <button class="back" id="backBtn">‹ all cities</button>
+      <div class="cityhead"><h2>${esc(cityName(state.city))}</h2>
+        <div class="sub">${esc(regionOf(state.city))} · ${list.length} ${list.length === 1 ? 'place' : 'places'}${shut ? ` (${shut} closed)` : ''}</div></div>
+      ${list.map(v => placeItem(v, false)).join('') || '<div class="note">nothing here yet.</div>'}
+      <button class="addcity" id="addHere">+ add a place in ${esc(cityName(state.city))}</button>`;
+    return;
+  }
+
+  const counts = countByCity();
+  if(!counts.size){
+    main.innerHTML = `<div class="note">no cities yet — tap + to add the first place.</div>`;
+    return;
+  }
+  if(state.near){
+    const cents = cityCentroids();
+    const rows = allCities().filter(c => cents.has(c))
+      .map(c => ({ c, d: miles(state.near, cents.get(c)) })).sort((a, b) => a.d - b.d);
+    main.innerHTML = `<div class="note">${esc(state.near.label)}</div>` +
+      rows.map(r => cityRow(r.c, counts.get(r.c), `${fmtMi(r.d)} · ${counts.get(r.c)}`)).join('');
+    return;
+  }
+  const groups = new Map();
+  allCities().forEach(c => { const g = regionOf(c); (groups.get(g) || groups.set(g, []).get(g)).push(c); });
+  const order = [...groups.keys()].sort((a, b) => (a === 'no state given') - (b === 'no state given') || a.localeCompare(b));
+  main.innerHTML = `<div class="note">${counts.size} cities · ${places.length} places</div>` +
+    order.map(g => `<div class="region">${esc(g)}</div>` + groups.get(g).map(c => cityRow(c, counts.get(c))).join('')).join('');
+}
+
+/* ---------- navigation ---------- */
+function openCity(c){
+  state.view = 'city'; state.city = c; state.query = ''; $('q').value = '';
+  render(); window.scrollTo(0, 0);
+}
+$('main').addEventListener('click', e => {
+  const c = e.target.closest('.city');
+  if(c){ openCity(c.dataset.city); return; }
+  const it = e.target.closest('.item');
+  if(it){ const v = places.find(p => key(p) === it.dataset.key); if(v) openDetail(v); return; }
+  if(e.target.id === 'backBtn'){ state.view = 'index'; render(); window.scrollTo(0, 0); return; }
+  if(e.target.id === 'addHere'){ openForm(null, state.city); }
+});
+$('q').addEventListener('input', () => { state.query = $('q').value; render(); });
+$('q').addEventListener('keydown', e => {
+  if(e.key === 'Enter') $('q').blur();
+  if(e.key === 'Escape'){ $('q').value = ''; state.query = ''; render(); }
+});
+$('clearQ').addEventListener('click', () => { $('q').value = ''; state.query = ''; render(); $('q').focus(); });
+$('fab').addEventListener('click', () => openForm(null, state.view === 'city' && !state.query ? state.city : ''));
+
+/* ---------- near me: sorts the cities by distance ---------- */
+function position(){
+  const get = opts => new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, opts));
+  return get({ enableHighAccuracy: true, timeout: 8000, maximumAge: 0 })
+    .catch(e => e && e.code === 1 ? Promise.reject(e) : get({ enableHighAccuracy: false, timeout: 15000, maximumAge: 0 }));
+}
+$('nearBtn').addEventListener('click', async () => {
+  if(state.near){ state.near = null; render(); return; }
+  if(!navigator.geolocation){ alert('This browser cannot share a location.'); return; }
+  $('nearBtn').textContent = 'locating…';
+  try{
+    const p = await position();
+    state.near = { lat: p.coords.latitude, lng: p.coords.longitude, label: 'cities by distance from where your browser puts you' };
+    state.view = 'index'; state.query = ''; $('q').value = '';
+    render(); window.scrollTo(0, 0);
+  }catch(e){
+    alert(e && e.code === 1
+      ? 'Location is turned off for this site. On iPhone: Settings ▸ Privacy & Security ▸ Location Services ▸ Safari Websites.'
+      : 'Could not get a location.');
+  }finally{
+    $('nearBtn').textContent = 'near me';
+  }
+});
+
+/* ---------- sheets ---------- */
+function openSheet(id){ closeSheets(); $('overlay').classList.add('open'); $(id).classList.add('open'); }
+function closeSheets(){ document.querySelectorAll('.sheet.open').forEach(s => s.classList.remove('open')); $('overlay').classList.remove('open'); }
+$('overlay').addEventListener('click', closeSheets);
+document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', closeSheets));
+
+function mapsUrl(v){
+  return 'https://maps.apple.com/?q=' + encodeURIComponent(v.name) + '&address=' + encodeURIComponent(v.address || v.city);
+}
+
+function openDetail(v){
+  openPlace = v;
+  const r = (v.rating || '').trim();
+  const shut = isClosed(v);
+  $('detailBody').innerHTML = `
+    <h2>${esc(v.name)}${closedTag(v)}</h2>
+    <div class="sub">${esc([v.category, v.city].filter(Boolean).join(' · '))}</div>
+    <div class="field"><label>Address</label><a class="maplink" href="${esc(mapsUrl(v))}" target="_blank" rel="noopener">${esc(v.address || 'open in maps')}</a></div>
+    ${shut ? `<div class="field"><label>Closed</label><div class="val">${esc(v.closed)}</div></div>` : ''}
+    <div class="field"><label>Rating</label>
+      ${shut ? `<div>${esc(r || '—')}</div>` : `<div class="rateRow">
+        <div class="rateBtn y ${r === 'y' ? 'on' : ''}" data-r="y">y</div>
+        <div class="rateBtn d ${r === '-' ? 'on' : ''}" data-r="-">-</div>
+        <div class="rateBtn n ${r === 'n' ? 'on' : ''}" data-r="n">n</div></div>`}
+    </div>
+    ${v.toOrder ? `<div class="field"><label>To Order</label><div class="val">${esc(v.toOrder)}</div></div>` : ''}
+    <div class="field"><label>Ordered</label>
+      ${v.ordered ? `<div class="val">${esc(v.ordered.split(/\s*;\s*/).filter(Boolean).join('\n'))}</div>` : ''}
+      ${shut ? '' : `<div class="inline" style="margin-top:6px"><input id="orderedAdd" placeholder="add what you ordered" autocomplete="off"><button class="btn ghost small" id="orderedAddBtn">add</button></div>`}
+    </div>
+    ${v.notes ? `<div class="field"><label>Notes</label><div class="val">${esc(v.notes)}</div></div>` : ''}
+    <div class="btnrow"><button class="btn ghost" id="editBtn">edit place</button></div>`;
+  openSheet('detailSheet');
+  $('editBtn').onclick = () => openForm(v);
+  document.querySelectorAll('#detailBody .rateBtn').forEach(b => b.onclick = () => setRating(v, b.dataset.r));
+  const addBtn = $('orderedAddBtn');
+  if(addBtn){
+    addBtn.onclick = () => addOrdered(v);
+    $('orderedAdd').addEventListener('keydown', e => { if(e.key === 'Enter') addOrdered(v); });
+  }
+}
+
+/* ---------- writes ----------
+   Graph can serve the pre-write copy of a table for a moment after a write,
+   so after a write the local list is the truth and no re-read follows it.
+   Before a PATCH or DELETE the row at the index is read back and checked
+   against name + city; if another device has shifted the rows, the list is
+   re-read and the place found again rather than writing to whatever sits there. */
+async function liveIndex(v){
+  if(!backend.rowAt) return v.index;
+  const at = v.index === null || v.index === undefined ? null : await backend.rowAt(v.index).catch(() => null);
+  if(at && key(at) === key(v)) return v.index;
+  await loadAll();
+  const twins = places.filter(p => key(p) === key(v));
+  if(twins.length !== 1) throw userError(`${v.name} in ${v.city} could not be found on the sheet just now. Nothing was written.`);
+  return twins[0].index;
+}
+function userError(msg){ const e = new Error(msg); e.userFacing = true; return e; }
+function report(e){ console.error(e); alert(e && e.userFacing ? e.message : 'Something went wrong talking to OneDrive: ' + (e && e.message)); }
+
+async function writeUpdate(v, next){
+  const index = await liveIndex(v);
+  await backend.update(index, next);
+  lastWrite = Date.now();
+  const cur = places.find(p => p.index === index);
+  if(cur) Object.assign(cur, next, { index });
+  refreshLists();
+  return cur || Object.assign({}, next, { index });
+}
+
+async function setRating(v, r){
+  const next = Object.assign({}, v, { rating: (v.rating || '').trim() === r ? '' : r });
+  try{ const cur = await writeUpdate(v, next); render(); openDetail(cur); }
+  catch(e){ report(e); }
+}
+async function addOrdered(v){
+  const item = $('orderedAdd').value.trim();
+  if(!item){ alert('Enter an item.'); return; }
+  const list = (v.ordered || '').split(/\s*;\s*/).filter(Boolean);
+  if(list.some(x => norm(x) === norm(item))){ alert(`${item} is already there.`); return; }
+  list.push(item);
+  try{ const cur = await writeUpdate(v, Object.assign({}, v, { ordered: list.join('; ') })); render(); openDetail(cur); }
+  catch(e){ report(e); }
+}
+
+function openForm(v, city){
+  editing = v || null;
+  $('formTitle').textContent = v ? 'edit place' : 'add a place';
+  const src = v || { city: city || '' };
+  ['name','city','category','rating','toOrder','ordered','notes','address','closed']
+    .forEach(c => { $('f_' + c).value = src[c] || ''; });
+  $('deleteRow').style.display = v ? '' : 'none';
+  openSheet('formSheet');
+  if(!v) setTimeout(() => $('f_name').focus(), 50);
+}
+$('f_city').addEventListener('blur', () => {
+  const c = canonCity($('f_city').value);
+  const known = allCities().includes(c);
+  $('cityHint').textContent = !c ? 'e.g. Sedona, AZ — or Paris, France'
+    : known ? `${c} is on the list` : !c.includes(',') ? 'add the state or country — e.g. Sedona, AZ' : `${c} is a new city`;
+});
+
+/* Coordinates only place a city on the near-me list, so a new row borrows its
+   city's centre when the city is known, and otherwise asks OpenStreetMap once. */
+async function geocode(rec){
+  const cents = cityCentroids();
+  if(cents.has(rec.city) && !rec.address){
+    const c = cents.get(rec.city); return { lat: c.lat.toFixed(6), lng: c.lng.toFixed(6) };
+  }
+  if(!backend.live) return null;
+  const q = rec.address || rec.city;
+  try{
+    const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 4000);
+    const res = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(q), { signal: ctl.signal });
+    clearTimeout(t);
+    const d = await res.json();
+    if(d && d[0]) return { lat: (+d[0].lat).toFixed(6), lng: (+d[0].lon).toFixed(6) };
+  }catch(e){ /* a place without coordinates still saves; it just is not on near me */ }
+  if(cents.has(rec.city)){ const c = cents.get(rec.city); return { lat: c.lat.toFixed(6), lng: c.lng.toFixed(6) }; }
+  return null;
+}
+
+$('saveBtn').addEventListener('click', async () => {
+  const v = editing;   // read before anything can clear it
+  const rec = {};
+  ['name','category','rating','toOrder','ordered','notes','address','closed'].forEach(c => { rec[c] = $('f_' + c).value.trim(); });
+  rec.city = canonCity($('f_city').value);
+  if(!rec.name){ alert('Enter a name.'); return; }
+  if(!rec.city){ alert('Enter a city.'); return; }
+  const twin = places.find(p => key(p) === key(rec) && p !== v);
+  if(twin){
+    alert(v ? `${twin.name} in ${twin.city} is already on the list. Nothing was changed.`
+            : `${twin.name} in ${twin.city} is already on the list.`);
+    if(!v){ closeSheets(); openDetail(twin); }
+    return;
+  }
+  $('saveBtn').disabled = true;
+  try{
+    if(v){
+      const moved = v.city !== rec.city || v.address !== rec.address;
+      rec.lat = moved ? '' : v.lat; rec.lng = moved ? '' : v.lng;
+      if(!rec.lat){ const g = await geocode(rec); if(g){ rec.lat = g.lat; rec.lng = g.lng; } }
+      const cur = await writeUpdate(v, Object.assign({}, v, rec));
+      closeSheets(); render(); openDetail(cur);
+    }else{
+      const g = await geocode(rec);
+      rec.lat = g ? g.lat : ''; rec.lng = g ? g.lng : '';
+      const index = await backend.add(rec);
+      lastWrite = Date.now();
+      const row = Object.assign({ index: index === null ? places.length : index }, rec);
+      places.push(row);
+      refreshLists();
+      closeSheets();
+      openCity(rec.city);
+      openDetail(row);
+    }
+  }catch(e){ report(e); }
+  finally{ $('saveBtn').disabled = false; }
+});
+
+$('deleteBtn').addEventListener('click', async () => {
+  const v = editing;
+  if(!v || !confirm(`Delete ${v.name} in ${v.city}? This removes the row from the workbook.`)) return;
+  try{
+    const index = await liveIndex(v);
+    await backend.remove(index);
+    lastWrite = Date.now();
+    places = places.filter(p => p.index !== index);
+    places.forEach(p => { if(p.index > index) p.index--; });
+    refreshLists();
+    closeSheets();
+    if(!places.some(p => p.city === state.city)) state.view = 'index';
+    render();
+  }catch(e){ report(e); }
+});
+
+/* ---------- re-read when the page comes back ---------- */
+async function refreshIfStale(){
+  if(!booted || document.visibilityState === 'hidden') return;
+  if(document.querySelector('.sheet.open')) return;          // a sheet holds the row it opened with
+  if(Date.now() - lastLoad < 20000 || Date.now() - lastWrite < 10000) return;
+  try{ await loadAll(); render(); }catch(e){ /* offline or an expired token: keep what is on screen */ }
+  checkVersion();
+}
+['visibilitychange','pageshow','focus'].forEach(ev => (ev === 'visibilitychange' ? document : window).addEventListener(ev, refreshIfStale));
+
+async function checkVersion(){
+  if(!backend || !backend.live) return;
+  try{
+    const res = await fetch('version.txt?t=' + Date.now(), { cache: 'no-store' });
+    const v = (await res.text()).trim();
+    if(v && v !== APP_VERSION) $('ver').innerHTML = `new version — <a onclick="location.reload()">reload</a>`;
+  }catch(e){}
+}
+
+/* ---------- start ---------- */
+let booted = false;
+function gate(html){ $('gateInner').innerHTML = html; $('gate').style.display = ''; }
+async function init(){
+  backend = window.OOT_BACKEND || graphBackend();
+  $('ver').textContent = APP_VERSION;
+  if(!backend.live) $('previewBanner').style.display = '';
+  try{
+    if(backend.start && !(await backend.start())){
+      gate(`<h2>out of town</h2><p>Sign in with the Microsoft account connected to your OneDrive.</p>
+        <button class="btn primary" id="signInBtn" style="flex:none;padding:12px 24px;">Sign in with Microsoft</button>`);
+      $('signInBtn').onclick = () => backend.signIn();
+      return;
+    }
+    await loadAll();
+  }catch(e){
+    console.error(e);
+    gate(`<h2>out of town</h2><p>Could not load the list.</p><div class="errbox">${esc(e.message)}</div>
+      <button class="btn primary" style="flex:none;padding:12px 24px;margin-top:14px;" onclick="location.reload()">try again</button>`);
+    return;
+  }
+  $('gate').style.display = 'none';
+  ['appHeader','main','fab'].forEach(id => $(id).style.display = '');
+  render();
+  booted = true;
+  checkVersion();
+}
+window.__oot = { get places(){ return places; }, state, render, canonCity, openCity };
+init();
+</script>
+</body>
+</html>
