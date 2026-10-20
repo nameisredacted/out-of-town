@@ -38,9 +38,12 @@ Vacaville (Solano) stayed.
   under a heading show only the town — the heading already says the state or country.
   Search results and the near-me list keep the full `City, ST` / `City, Country`.
   Each country is a collapsible `<details class="country">` (2026.10.20-4), closed by default,
-  its summary showing places · cities; which ones are open is remembered per browser in
-  `localStorage` (`oot.openCountries`), never in the workbook. Headings: country 19px bold with
-  a rule, state 12px uppercase in the accent, cities plain body text.
+  its summary showing the place count; which ones are open is remembered per browser in
+  `localStorage` (`oot.openCountries`), never in the workbook. Headings (2026.10.20-5, option H
+  "one black rule" from the heading canvas): country 15px bold under a single 1px black rule,
+  place count muted on the right, no chevron; state 12px bold black, title case; city rows
+  15px regular with a bare muted count and no dividers. Contrast comes from weight and the
+  one rule only; no colour, capitals, bands or icons.
 - **Ordered** replaces eat + drink's Menu Details table: items separated by `; `.
   The detail sheet appends one at a time.
 - **Rating** is `y` / `-` / `n` / blank, same as eat + drink.

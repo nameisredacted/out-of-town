@@ -57,6 +57,8 @@ function ok(cond, msg){ if(cond){ pass++; } else { fail++; console.log('FAIL:', 
   ok(d.querySelectorAll('.city').length === 3, 'three cities');
   ok(d.querySelectorAll('details.country').length === 1 && !d.querySelector('details.country').open, 'country collapsed by default');
   ok(d.querySelector('.note').textContent.includes('3 cities · 5 places'), 'count line');
+  ok(d.querySelector('.rcount').textContent === '5', 'country shows its place count only: ' + d.querySelector('.rcount').textContent);
+  ok([...d.querySelectorAll('.city .cc')].every(e => /^\d+$/.test(e.textContent)), 'city rows show a bare count');
 }
 
 // 2. city view sorts y first, n last
