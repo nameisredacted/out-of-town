@@ -41,8 +41,10 @@ Vacaville (Solano) stayed.
   its summary showing the place count; which ones are open is remembered per browser in
   `localStorage` (`oot.openCountries`), never in the workbook. Headings (2026.10.20-5, option H
   "one black rule" from the heading canvas): country 15px bold under a single 1px black rule,
-  place count muted on the right, no chevron; state 12px bold black, title case; city rows
-  15px regular with a bare muted count and no dividers. Contrast comes from weight and the
+  place count muted on the right, no chevron; state 13px bold muted grey, title case; city rows
+  15px regular black with a bare muted count and no dividers, indented 14px under a state
+  (2026.10.20-6). `main` is left-aligned (max-width 640px, no auto margins) so the list lines
+  up with the header on wide screens instead of floating in the centre. Contrast comes from weight and the
   one rule only; no colour, capitals, bands or icons.
 - **Ordered** replaces eat + drink's Menu Details table: items separated by `; `.
   The detail sheet appends one at a time.

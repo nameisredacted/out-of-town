@@ -29,8 +29,8 @@
   .chip.active{background:var(--accent);color:#fff;border-color:var(--accent);}
   .ver{font-size:11px;color:var(--muted);}
   .ver a{color:var(--accent);text-decoration:underline;cursor:pointer;}
-  main{padding:6px 14px 96px;max-width:640px;margin:0 auto;}
-  .note{color:var(--muted);font-size:13px;padding:8px 2px;}
+  main{padding:6px 14px 96px;max-width:640px;margin:0;}
+  .note{color:var(--muted);font-size:13px;padding:8px 0;}
   /* Three levels that must read apart at a glance: country (large, bold, ruled),
      state (small caps in the accent), city (plain body text). */
   .region{font-size:15px;font-weight:700;color:var(--text);margin:0;padding:11px 0;border-top:1px solid var(--text);}
@@ -40,8 +40,9 @@
   details.country[open] > summary{padding-bottom:4px;}
   details.country[open]{padding-bottom:8px;}
   .rcount{font-size:13px;font-weight:400;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;}
-  .subregion{font-size:12px;font-weight:700;color:var(--text);padding:14px 0 2px;}
-  details.country > summary + .subregion{padding-top:6px;}
+  .subregion{font-size:13px;font-weight:700;color:var(--muted);padding:18px 0 4px;}
+  details.country > summary + .subregion{padding-top:8px;}
+  .subregion ~ .city{padding-left:14px;}
   .city{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:6px 0;cursor:pointer;}
   .city .cn{font-size:15px;font-weight:400;}
   .city .cc{font-size:13px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums;}
@@ -151,7 +152,7 @@
 
 <script>
 /* ====== CONFIG ====== */
-const APP_VERSION = "2026.10.20-5";
+const APP_VERSION = "2026.10.20-6";
 const MSAL_CLIENT_ID = "7175d0f0-c775-4157-87de-0d85914a1350";
 const REDIRECT_URI = "https://nameisredacted.github.io/out-of-town/";
 const GRAPH_SCOPES = ["Files.ReadWrite", "User.Read"];
