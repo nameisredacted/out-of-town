@@ -32,8 +32,11 @@ Vacaville (Solano) stayed.
   is in New York and Los Angeles). A twin name + city is refused on add and on rename.
 - **City** is `City, ST` for the US, `City, Country` elsewhere. `canonCity()` snaps a typed
   city to an existing spelling (case, spacing and accents ignored) and upper-cases a known
-  state code, so `phoenix,  az` becomes `Phoenix, AZ`. The index groups by the part after
-  the last comma (state codes become state names).
+  state code, so `phoenix,  az` becomes `Phoenix, AZ`. The index (2026.10.20-2) puts every
+  US city under one **United States** heading, first, with a state subheading for each state;
+  every other city is grouped under its country (the part after the last comma). City rows
+  under a heading show only the town — the heading already says the state or country.
+  Search results and the near-me list keep the full `City, ST` / `City, Country`.
 - **Ordered** replaces eat + drink's Menu Details table: items separated by `; `.
   The detail sheet appends one at a time.
 - **Rating** is `y` / `-` / `n` / blank, same as eat + drink.
@@ -111,3 +114,12 @@ the preview is saved.
   backup with every field as it was, rated `-`. 25 places, 14 cities.
 - 2026-10-20: search input waits 150 ms after typing and lists at most 150 places
   (`SEARCH_CAP`), with a "keep typing" line — needed once the list passed 6,000 rows.
+- 2026-10-20: **travel notes import.** Every note under the Apple Notes folder `travel` was copied
+  (read-only, from a copy of NoteStore.sqlite; text kept in `import/notes-20261019/`, gitignored)
+  and 6,506 eat-or-drink places were added — 6,531 rows, 1,113 cities, 125 countries/states.
+  Dishes nested under a place went into To Order. Rating is blank: these are want-to-go places,
+  not the "no rating = mistake" rows removed earlier. Names that were not recognised (1,591) each
+  got one web search; 449 that a search could not find were still added, Notes "not found online
+  (Oct 2026 check)". 8 carry Closed from a web source. Lat/Lng are city centres (Photon / OSM),
+  not addresses. Bay Area places from the notes (316) were not added here. Backup:
+  `archive/Out of Town (pre-travel-import 20261020).xlsx`.

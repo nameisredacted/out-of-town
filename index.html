@@ -31,7 +31,8 @@
   .ver a{color:var(--accent);text-decoration:underline;cursor:pointer;}
   main{padding:6px 14px 96px;max-width:640px;margin:0 auto;}
   .note{color:var(--muted);font-size:13px;padding:8px 2px;}
-  .region{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:16px 2px 4px;}
+  .region{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:18px 2px 4px;}
+  .subregion{font-size:13px;font-weight:600;color:var(--text);margin:12px 2px 2px;}
   .city{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:11px 2px;border-bottom:1px solid var(--border);cursor:pointer;}
   .city .cn{font-size:15px;}
   .city .cc{font-size:13px;color:var(--muted);white-space:nowrap;}
@@ -141,7 +142,7 @@
 
 <script>
 /* ====== CONFIG ====== */
-const APP_VERSION = "2026.10.20-1";
+const APP_VERSION = "2026.10.20-2";
 const MSAL_CLIENT_ID = "7175d0f0-c775-4157-87de-0d85914a1350";
 const REDIRECT_URI = "https://nameisredacted.github.io/out-of-town/";
 const GRAPH_SCOPES = ["Files.ReadWrite", "User.Read"];
@@ -234,6 +235,17 @@ function regionOf(city){
   return STATES[last.toUpperCase()] || last;
 }
 function cityName(city){ return city.split(',')[0].trim(); }
+/* Index grouping: every US city sits under one "United States" heading with a
+   state heading below it; everywhere else is grouped by country. */
+function isUS(city){
+  const parts = city.split(',').map(s => s.trim());
+  return parts.length >= 2 && !!STATES[parts[parts.length - 1].toUpperCase()];
+}
+function countryOf(city){
+  const parts = city.split(',').map(s => s.trim()).filter(Boolean);
+  if(parts.length < 2) return 'no country or state given';
+  return isUS(city) ? 'United States' : parts[parts.length - 1];
+}
 
 /* Identity is name + city, so "sedona, az" and "Sedona, AZ" must not become two
    cities. A typed city snaps to an existing spelling when it matches one; a new
@@ -315,8 +327,8 @@ function placeItem(v, showCity){
     ${v.toOrder ? `<div class="toorder"><span class="tolabel">to order:</span> ${esc(v.toOrder)}</div>` : ''}
   </div>`;
 }
-function cityRow(c, count, right){
-  return `<div class="city" data-city="${esc(c)}"><span class="cn">${esc(c)}</span><span class="cc">${right || (count + (count === 1 ? ' place' : ' places'))}</span></div>`;
+function cityRow(c, count, right, short){
+  return `<div class="city" data-city="${esc(c)}"><span class="cn">${esc(short ? cityName(c) : c)}</span><span class="cc">${right || (count + (count === 1 ? ' place' : ' places'))}</span></div>`;
 }
 function countByCity(){
   const m = new Map();
@@ -369,10 +381,19 @@ function render(){
     return;
   }
   const groups = new Map();
-  allCities().forEach(c => { const g = regionOf(c); (groups.get(g) || groups.set(g, []).get(g)).push(c); });
-  const order = [...groups.keys()].sort((a, b) => (a === 'no state given') - (b === 'no state given') || a.localeCompare(b));
-  main.innerHTML = `<div class="note">${counts.size} cities · ${places.length} places</div>` +
-    order.map(g => `<div class="region">${esc(g)}</div>` + groups.get(g).map(c => cityRow(c, counts.get(c))).join('')).join('');
+  allCities().forEach(c => { const g = countryOf(c); (groups.get(g) || groups.set(g, []).get(g)).push(c); });
+  const LAST = 'no country or state given';
+  const order = [...groups.keys()].sort((a, b) =>
+    (a === LAST) - (b === LAST) || (b === 'United States') - (a === 'United States') || a.localeCompare(b));
+  const section = g => {
+    const list = groups.get(g);
+    if(g !== 'United States') return `<div class="region">${esc(g)}</div>` + list.map(c => cityRow(c, counts.get(c), null, g !== LAST)).join('');
+    const byState = new Map();
+    list.forEach(c => { const st = regionOf(c); (byState.get(st) || byState.set(st, []).get(st)).push(c); });
+    return `<div class="region">United States</div>` + [...byState.keys()].sort((a, b) => a.localeCompare(b))
+      .map(st => `<div class="subregion">${esc(st)}</div>` + byState.get(st).map(c => cityRow(c, counts.get(c), null, true)).join('')).join('');
+  };
+  main.innerHTML = `<div class="note">${counts.size} cities · ${places.length} places</div>` + order.map(section).join('');
 }
 
 /* ---------- navigation ---------- */
