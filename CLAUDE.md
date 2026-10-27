@@ -205,4 +205,18 @@ the preview is saved.
   remaining sub-items all belong to Bay Area places and stay out with them. Now 16,261 rows.
   Backup `archive/Out of Town (pre-multi-place 20261027).xlsx`; list of what is out:
   `import/not-imported-20261027b.txt`.
+- 2026-10-27 (later): **recheck of the "not found online" rows**, two rounds of one web search
+  each (442 of 444; DLT and Maple, London, still to do). Every suggested change was checked
+  against where the line sits in the notes before it was applied — the searches proposed moving
+  La Hacienda (Guadalajara) and Stella's (Gulfport, MS) to places that are already their own
+  rows or that the notes contradict, and those were refused. Applied: 56 found (note cleared to
+  "found online (Oct 2026 recheck)", 4 of them "found only as a directory listing"), 22 names
+  corrected (the notes' spelling kept in Notes), 12 towns corrected, 9 not eat + drink (Kind
+  changed: Besso and Sasayuri-ann → stay, Brusk / Contramurada → see + do, Polonio / Despiral /
+  Miss Arthur → shop), Coola Boola (Coimbra) Closed Dec 2024. Three rows were twins the first
+  import had filed in a wrong city from the same note line (Fausto in Cales Fonts, the Spot in
+  Dresden, OMA in Fukuoka) and were removed; Francie's merged into Francie. City spellings
+  `Chang Rai` → `Chiang Rai`, `San Pacho` → `San Pancho`. 347 rows now say "not found online
+  (rechecked Oct 2026)". 16,257 rows. Backups `archive/Out of Town (pre-recheck 20261027).xlsx`
+  and `(pre-recheck-2 20261027).xlsx`.
 
