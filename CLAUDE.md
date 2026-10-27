@@ -168,3 +168,27 @@ the preview is saved.
   (Oct 2026 check)". 8 carry Closed from a web source. Lat/Lng are city centres (Photon / OSM),
   not addresses. Bay Area places from the notes (316) were not added here. Backup:
   `archive/Out of Town (pre-travel-import 20261020).xlsx`.
+- 2026-10-27: **restaurant check + travel merge** (backup `archive/Out of Town (pre-travel-merge 20261027).xlsx`).
+  Every food row was matched back to its line in `import/notes-20261019/`: 6,186 sat under a
+  heading naming their city; 121 more named it in a heading just above; the other 166 were read
+  one by one and ~30 checked online. Fixed: Double Luck (Anaheim → Miami), Levain (Kaysersberg →
+  Arles), Bourbon Steak (DC → New York), Libération produce market (Rabat → Nice), Coquette →
+  Sainte-Anne-de-Beaupré, Microbrasserie Shawbridge → Prévost, Breedy's → `Sint Maarten, Sint
+  Maarten`; no-city rows placed: Sunday (St. Augustine), To Be Determined (Miami), Ken's and
+  Kessler's (Aberdeen, SD). Removed: Eight North, Bistro Lagniappe, George + Kin's, Ferry
+  Building (hometown), Alyvia (among Bay Area hotels, not found), "the lime" (a Grenada district
+  used as a heading), twins HumoySal / DBA / frank fats. `, Scotland` cities became
+  `, United Kingdom` (one twin dropped). The 449 "not found online" rows were not re-checked.
+  Same-name headings (Berlin, Lagos, Providence, Versailles…) were checked: each of those rows
+  also has its own line under the real city, so they stay.
+  Then the **rest of the travel notes** (14,846 lines not yet in the app) were sorted line by line
+  into heading / place / sub-item / note, and 9,576 places added with a Kind: see + do 5,820,
+  stay 2,604, shop 762, golf 229, eat + drink 86 (misses from the first import), ski 75. 639
+  sub-items (dishes, trails, courses, rooms) went onto their parent's To Order / To Do; 74 notes
+  onto Notes. Left out and listed in `import/not-imported-20261027.txt` (gitignored): 582 Bay
+  Area places, 103 with no single town (cruise ships, statewide trails), 85 sub-items under a
+  bare heading. Lat/Lng for new cities are Photon city centres (`lang=en`, place tags first,
+  country/state checked; 32 cities found nothing). Now 16,158 rows. Built with xlsxwriter,
+  table `A1:L16159`, 12 tableColumns, dimension agrees; every pre-existing row compared cell
+  by cell against the backup — only the changes above differ.
+
