@@ -225,4 +225,13 @@ the preview is saved.
   from the previous build so no city centre moved; nothing else changed (cell-by-cell check).
   DLT and Maple (London) were never rechecked and stay. 15,910 rows. Backup
   `archive/Out of Town (pre-drop-notfound 20261027).xlsx`.
+- 2026-10-27: **guessed-type review, round 1 of ~4.** 814 places carried a kind/category the
+  note sort had guessed ("unsure" in its notes). One web search each, ~200 a round; every
+  suggestion read before applying (a move of Stoneridge Estate from Waiheke to a Queenstown lodge
+  was refused — the note files it on Waiheke). Round 1: 111 confirmed, 55 kind/category fixed
+  (e.g. Pocketbook Hudson → stay, Radio Tave → Meow Wolf exhibit, The Lynx → bookstore), 7 towns
+  made specific within the filed region (Camptown → Leeds, NY; Our Habitas on Hudson → Staatsburg),
+  49 still unconfirmed (Notes: "type not confirmed online (Oct 2026)"). Answers given "without a
+  search" were not accepted and go back in the queue. 598 left (`work/rv2_*.tsv` in the session).
+  Backup `archive/Out of Town (pre-type-review 20261027).xlsx`.
 
