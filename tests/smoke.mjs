@@ -9,7 +9,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const html = fs.readFileSync(path.join(here, '..', 'index.html'), 'utf8')
   .replace(/<!--MSAL-->[\s\S]*?<!--\/MSAL-->/, '');
 
-const COLS = ['name','category','city','rating','toOrder','ordered','notes','address','lat','lng','closed'];
+const COLS = ['name','category','city','rating','toOrder','ordered','notes','address','lat','lng','closed','kind'];
 const seed = [
   { name: 'Bar Pitti', category: 'Italian', city: 'New York, NY', rating: 'y', lat: '40.729', lng: '-74.002' },
   { name: "Salt Hank's", category: 'Sandwiches', city: 'New York, NY', lat: '40.731', lng: '-74.003' },
@@ -150,7 +150,6 @@ function ok(cond, msg){ if(cond){ pass++; } else { fail++; console.log('FAIL:', 
   const { d, dom, w, backend } = await app();
   d.querySelector('.city[data-city="New York, NY"]').click(); await tick(dom);
   [...d.querySelectorAll('.item')].find(e => e.textContent.includes('Bar Pitti')).click(); await tick(dom);
-  d.getElementById('editBtn').click(); await tick(dom);
   d.getElementById('deleteBtn').click(); await tick(dom);
   ok(backend.table.length === 4 && !backend.table.some(r => r[0] === 'Bar Pitti'), 'deleted');
   const wc = w.__oot.places.find(p => p.name === 'Wild Crumb');
@@ -181,9 +180,9 @@ function ok(cond, msg){ if(cond){ pass++; } else { fail++; console.log('FAIL:', 
   const { d, dom } = await app(rows);
   d.querySelector('.city[data-city="Sedona, AZ"]').click(); await tick(dom);
   const items = [...d.querySelectorAll('.item')];
-  ok(items.at(-1).textContent.includes('FreeForm') && items.at(-1).querySelector('.closed'), 'closed sorts last with tag');
+  ok(items.at(-1).textContent.includes('FreeForm') && items.at(-1).querySelector('.closedtag'), 'closed sorts last with tag');
   items.at(-1).click(); await tick(dom);
-  ok(!d.querySelector('#detailBody .rateBtn') && !d.getElementById('orderedAdd'), 'closed is read-only');
+  ok(!d.querySelector('#detailBody .rateBtn') && !d.getElementById('orderedAdd') && !d.getElementById('toOrderAdd') && !d.getElementById('editBtn'), 'closed is read-only');
 }
 
 // 11. near me sorts cities by distance
@@ -214,6 +213,69 @@ function ok(cond, msg){ if(cond){ pass++; } else { fail++; console.log('FAIL:', 
   const regions = [...d.querySelectorAll('.region')].map(e => (e.firstElementChild || e).textContent);
   ok(JSON.stringify(regions) === JSON.stringify(['United States', 'Denmark', 'France']), 'country order: ' + regions);
   ok([...d.querySelectorAll('.city .cn')].some(e => e.textContent === 'Paris'), 'Paris shown without France');
+}
+
+
+// 14. To Order box: add an item, then "ate it" moves it to Ordered
+{
+  const { d, dom, backend } = await app();
+  d.querySelector('.city[data-city="New York, NY"]').click(); await tick(dom);
+  [...d.querySelectorAll('.item')].find(e => e.textContent.includes('Salt Hank')).click(); await tick(dom);
+  ok(d.querySelector('#detailBody label').parentElement && [...d.querySelectorAll('#detailBody label')].some(l => l.textContent === 'To Order'), 'To Order box shown');
+  d.getElementById('toOrderAdd').value = 'Double Smash';
+  d.getElementById('toOrderAddBtn').click(); await tick(dom);
+  d.getElementById('toOrderAdd').value = 'Fries';
+  d.getElementById('toOrderAddBtn').click(); await tick(dom);
+  ok(backend.table[1][4] === 'Double Smash; Fries', 'to order appended: ' + backend.table[1][4]);
+  ok(d.querySelectorAll('#detailBody .wantrow').length === 2, 'two to-order rows');
+  d.querySelector('#detailBody .ate[data-i="0"]').click(); await tick(dom);
+  ok(backend.table[1][4] === 'Fries' && backend.table[1][5] === 'Double Smash', 'ate it moves the item: ' + backend.table[1].slice(4, 6));
+  const it = [...d.querySelectorAll('.item')].find(e => e.textContent.includes('Salt Hank'));
+  ok(it.querySelector('.toorder').textContent.includes('Fries'), 'list shows what is left to order');
+}
+
+// 15. kinds: sections on a city page, "To Do" wording, kind filter on the index
+{
+  const rows = seed.concat([
+    { name: 'Enchantment Resort', category: 'Resort', city: 'Sedona, AZ', kind: 'stay', toOrder: 'Mii amo spa', lat: '34.9', lng: '-111.8' },
+    { name: 'Cathedral Rock', category: 'Trail', city: 'Sedona, AZ', kind: 'see + do', lat: '34.82', lng: '-111.79' },
+    { name: 'TPC Scottsdale', category: 'Golf Course', city: 'Scottsdale, AZ', kind: 'golf', lat: '33.64', lng: '-111.91' },
+  ]);
+  const { d, dom, w, backend } = await app(rows);
+  d.querySelector('.city[data-city="Sedona, AZ"]').click(); await tick(dom);
+  const heads = [...d.querySelectorAll('.kindhead span:first-child')].map(e => e.textContent);
+  ok(JSON.stringify(heads) === JSON.stringify(['eat + drink', 'stay', 'see + do']), 'kind sections: ' + heads);
+  [...d.querySelectorAll('.item')].find(e => e.textContent.includes('Enchantment')).click(); await tick(dom);
+  ok([...d.querySelectorAll('#detailBody label')].some(l => l.textContent === 'To Do') && d.querySelector('#detailBody .ate').textContent === 'done', 'non-food wording');
+  d.querySelector('#detailBody .ate').click(); await tick(dom);
+  ok(backend.table[5][4] === '' && backend.table[5][5] === 'Mii amo spa' && backend.table[5][11] === 'stay', 'done keeps kind: ' + backend.table[5]);
+  w.__oot.state.view = 'index';
+  const sel = d.getElementById('kindSel'); sel.value = 'golf'; sel.dispatchEvent(new dom.window.Event('change')); await tick(dom);
+  ok(d.querySelectorAll('.city').length === 1 && d.querySelector('.city').dataset.city === 'Scottsdale, AZ', 'golf filter leaves one city');
+  ok(d.querySelector('.note').textContent.includes('1 city · 1 place'), 'filtered count line: ' + d.querySelector('.note').textContent);
+  sel.value = ''; sel.dispatchEvent(new dom.window.Event('change')); await tick(dom);
+  d.querySelector('.chip[data-rating="y"]').click(); await tick(dom);
+  ok(d.querySelector('.note').textContent.includes('2 places'), 'rating filter: ' + d.querySelector('.note').textContent);
+}
+
+// 16. adding a place writes its kind; a blank kind reads as eat + drink
+{
+  const { d, dom, backend } = await app();
+  d.getElementById('fab').click();
+  d.getElementById('f_name').value = 'Amangiri';
+  d.getElementById('f_city').value = 'Canyon Point, UT';
+  d.getElementById('f_kind').value = 'stay'; d.getElementById('f_kind').dispatchEvent(new dom.window.Event('change'));
+  ok(d.getElementById('f_toOrderLabel').textContent === 'To Do', 'form wording follows kind');
+  d.getElementById('saveBtn').click(); await tick(dom);
+  ok(backend.table.at(-1)[11] === 'stay', 'kind written: ' + backend.table.at(-1));
+  d.querySelector('.city[data-city="Bozeman, MT"]') ;
+}
+
+// 17. the page does not boot inside MSAL's hidden renewal iframe
+{
+  const src = html;
+  ok(/if\(window\.self === window\.top \|\| window\.OOT_BACKEND\) init\(\);/.test(src), 'iframe guard present');
+  ok(/loginRedirect\(Object\.assign\(\{ scopes: GRAPH_SCOPES \}, hint\(\)\)\)/.test(src) && /AUTO_TRY/.test(src), 'signs in without a tap, once');
 }
 
 console.log(`${pass} passed, ${fail} failed`);

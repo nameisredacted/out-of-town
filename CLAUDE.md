@@ -26,7 +26,17 @@ Vacaville (Solano) stayed.
 
 `Out of Town.xlsx`, table **PlacesTable** on sheet **Places**, one table only:
 
-`Name | Category | City | Rating | To Order | Ordered | Notes | Address | Lat | Lng | Closed`
+`Name | Category | City | Rating | To Order | Ordered | Notes | Address | Lat | Lng | Closed | Kind`
+
+- **Kind** (12th column, 2026.10.27-1) is one of `eat + drink`, `stay`, `see + do`, `shop`,
+  `golf`, `ski`. Blank reads as `eat + drink`. The header's kind select and the y / - / n chips
+  filter everything (index counts, city pages, search, nearest); a city page with more than one
+  kind splits into a section per kind. The app writes rows at the width the table actually has
+  (`tableWidth`, read from the first row), so an 11-column copy of the workbook still works.
+- **To Order** is a list (items separated by `; `). The detail sheet shows it the way eat + drink
+  does: one row per item with an **ate it** button that moves the item to Ordered, and an add
+  field under the list. For kinds other than eat + drink the same two columns read **To Do** /
+  **done** / **Done**.
 
 - **Identity is name + city.** The same name in two cities is two rows (All'antico Vinaio
   is in New York and Los Angeles). A twin name + city is refused on add and on rename.
@@ -43,7 +53,8 @@ Vacaville (Solano) stayed.
   "one black rule" from the heading canvas): country 15px bold under a single 1px black rule,
   place count muted on the right, no chevron; state 13px bold muted grey, title case; city rows
   15px regular black with a bare muted count and no dividers, indented 14px under a state
-  (2026.10.20-6). Everything shares one left-aligned 640px column (2026.10.20-7): `main`
+  (2026.10.20-6). City names are accent blue since 2026.10.27-1 (blue = tappable, as in
+  eat + drink). Everything shares one left-aligned 640px column (2026.10.20-7): `main`
   (max-width 640px, no auto margins), the sticky header (inset 14px each side, so its bottom
   rule ends where the country rules end), the detail sheet, and the + button (pinned 20px
   inside the column's right edge on wide screens). Pixel values follow the H artboard:
@@ -54,12 +65,19 @@ Vacaville (Solano) stayed.
   the window instead of sitting small beside empty space; past 960px wide it stops at 1.5x.
   It also sets `--vw` (window width in zoomed px) for the + button, because `100vw` ignores
   the zoom. Contrast comes from weight and the
-  one rule only; no colour, capitals, bands or icons.
+  one rule only; no capitals, bands or icons.
+- **Look (2026.10.27-1)** follows eat + drink's "minimal" pass: accent `#1a4fd6`, hairlines
+  `#ececec`, square corners everywhere, underline-only search, text-only filters (blue, bold
+  black when on), list items as blue names over a grey sub-line with a hairline below, the + as
+  a white box with a hairline border, sheets with a top rule, black primary button. Copy is
+  lowercase like eat + drink's.
 - **Ordered** replaces eat + drink's Menu Details table: items separated by `; `.
   The detail sheet appends one at a time.
 - **Rating** is `y` / `-` / `n` / blank, same as eat + drink.
 - **Closed**: any non-empty value means closed (`closed Jun 2026`). Closed rows sort last,
-  carry a CLOSED tag and take no rating or ordered items.
+  carry a CLOSED tag and take no rating or ordered items. The detail sheet's **mark as closed**
+  writes `closed <Mon YYYY>`; **reopen this place** clears it. Edit and delete sit on the
+  detail sheet (as in eat + drink), not in the form.
 - **Lat/Lng** exist only to sort cities for *near me*. A new place borrows its city's
   centre when the city is known and no address is typed; otherwise it asks OpenStreetMap
   Nominatim once (4 s timeout). A place without coordinates still saves.
@@ -95,10 +113,19 @@ app registration (Azure portal ▸ App registrations ▸ food and drink ▸ Auth
 Single-page application). Both apps live on the same origin (`nameisredacted.github.io`),
 so they share MSAL's localStorage cache: signed in to one is signed in to the other.
 
-Known noise: MSAL's silent token renewal loads the redirect URI (this page) in a hidden
-iframe, the app boots inside it, and the console logs `block_iframe_reload`. Harmless.
-If it ever matters, skip `init()` when `window.self !== window.top` and no
-`window.OOT_BACKEND` is set (the preview runs in an iframe on purpose).
+**Signing in without a tap (2026.10.27-1).** The user reported not being signed in
+automatically. With no account in the cache (a home-screen copy has its own storage, a new
+device, or Safari clearing site data) the page used to stop at a Sign in button. Now
+`start()` calls `loginRedirect` straight away; a browser Microsoft already knows comes back
+signed in with no prompt. A `sessionStorage` stamp (`oot.autoLoginAt`) stops a loop: if that
+round trip came back without an account, or failed, inside two minutes, the button shows
+instead. The last username is kept in `localStorage` (`oot.lastUser`) and passed as
+`loginHint`. The active account is set explicitly. MSAL is pinned to 3.30.0, the build
+eat + drink's `@3` resolves to, so both read the same cache.
+
+MSAL's silent token renewal loads the redirect URI (this page) in a hidden iframe; since
+2026.10.27-1 the app does not boot there (`init()` runs only when `window.self === window.top`
+or a `window.OOT_BACKEND` is supplied, which the preview does on purpose).
 
 ## Preview
 

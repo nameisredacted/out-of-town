@@ -7,32 +7,46 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>out of town</title>
-<!--MSAL--><script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.27.0/lib/msal-browser.min.js"></script><!--/MSAL-->
+<!--MSAL--><script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.30.0/lib/msal-browser.min.js"></script><!--/MSAL-->
 <style>
+  /* Same system as eat + drink (its "minimal" pass): one family, one accent,
+     hairlines only, no rounded corners. Blue = tappable, green/red = verdict,
+     everything else is type. The country / state / city index keeps its own
+     headings: one black rule per country, weight for contrast. */
   :root{
     color-scheme:light;
-    --bg:#ffffff; --card:#ffffff; --card2:#f4f4f2; --text:#000000; --muted:#666666;
-    --accent:#0000cc; --good:#0a7a24; --bad:#cc0000; --border:#cccccc;
+    --bg:#ffffff; --text:#111111; --muted:#999999; --muted2:#666666;
+    --accent:#1a4fd6; --good:#0a7a24; --bad:#cc0000; --hair:#ececec; --line:#dddddd;
   }
   *{box-sizing:border-box;}
   html,body{background:var(--bg);}
-  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--text);}
-  header{position:sticky;top:env(safe-area-inset-top, 0px);background:var(--bg);margin:0 16px;padding:14px 0 10px;z-index:10;border-bottom:1px solid var(--border);max-width:608px;}
-  .titlerow{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:0 0 10px;}
-  h1{font-size:18px;margin:0;font-weight:600;}
-  .home{font-size:12px;color:var(--accent);text-decoration:none;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+       -webkit-font-smoothing:antialiased;font-size:15px;color:var(--text);}
+  button,input,select,textarea{font-family:inherit;border-radius:0;}
+
+  /* header */
+  header{position:sticky;top:env(safe-area-inset-top, 0px);background:var(--bg);margin:0 16px;padding:14px 0 10px;
+         z-index:10;border-bottom:1px solid var(--hair);max-width:608px;}
+  h1{margin:0 0 10px;font-size:15px;font-weight:700;letter-spacing:.01em;color:var(--text);}
+  .loglink{font-weight:400;font-size:13px;color:var(--accent);text-decoration:none;margin-left:10px;}
+  .ver{position:absolute;top:14px;right:0;font-size:10px;color:#bbb;letter-spacing:.02em;}
+  .ver a{color:var(--accent);text-decoration:none;cursor:pointer;}
   .searchrow{position:relative;}
-  .search{width:100%;padding:10px 34px 10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:16px;}
-  .clearx{position:absolute;top:50%;right:8px;transform:translateY(-50%);background:none;border:none;color:var(--muted);font-size:20px;line-height:1;cursor:pointer;padding:2px 6px;display:none;}
-  .row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center;}
-  .chip{font-size:13px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);cursor:pointer;user-select:none;}
-  .chip.active{background:var(--accent);color:#fff;border-color:var(--accent);}
-  .ver{font-size:11px;color:var(--muted);}
-  .ver a{color:var(--accent);text-decoration:underline;cursor:pointer;}
-  main{padding:10px 16px 96px;max-width:640px;margin:0;}
-  .note{color:var(--muted);font-size:13px;padding:4px 0 6px;}
-  /* Three levels that must read apart at a glance: country (large, bold, ruled),
-     state (small caps in the accent), city (plain body text). */
+  .search{width:100%;background:#fff;border:none;border-bottom:1px solid var(--line);padding:8px 30px 8px 0;
+          font-size:16px;color:var(--text);}
+  .search:focus{outline:none;border-bottom-color:var(--text);}
+  .clearx{position:absolute;top:50%;right:0;transform:translateY(-50%);background:none;border:none;color:#bbb;
+          font-size:20px;line-height:1;cursor:pointer;padding:2px 6px;display:none;}
+  .row{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;align-items:center;}
+  select.kind{background:#fff;border:none;color:var(--accent);padding:6px 2px;font-size:13px;-webkit-appearance:none;appearance:none;cursor:pointer;}
+  select.kind.on{color:var(--text);font-weight:700;}
+  .chip{background:none;border:none;color:var(--accent);padding:6px 8px;font-size:13px;cursor:pointer;user-select:none;}
+  .chip.active{color:var(--text);font-weight:700;}
+  .count{color:#aaa;font-size:12px;margin-top:4px;}
+
+  /* list */
+  main{padding:2px 16px 96px;max-width:640px;margin:0;}
+  .note{color:#aaa;font-size:12px;padding:8px 0 6px;}
   .region{font-size:15px;font-weight:700;color:var(--text);margin:0;padding:11px 0;border-top:1px solid var(--text);}
   details.country > summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
   details.country > summary::-webkit-details-marker{display:none;}
@@ -40,62 +54,85 @@
   details.country[open] > summary{padding-bottom:4px;}
   details.country[open]{padding-bottom:8px;}
   .rcount{font-size:13px;font-weight:400;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;}
-  .subregion{font-size:13px;font-weight:700;color:var(--muted);padding:18px 0 4px;}
+  .subregion{font-size:13px;font-weight:700;color:var(--muted2);padding:18px 0 4px;}
   details.country > summary + .subregion{padding-top:8px;}
   .subregion ~ .city{padding-left:14px;}
   .city{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:6px 0;cursor:pointer;}
-  .city .cn{font-size:15px;font-weight:400;}
-  .city .cc{font-size:13px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums;}
-  .back{background:none;border:none;color:var(--accent);font-size:14px;cursor:pointer;padding:8px 0 2px;}
-  .cityhead h2{font-size:21px;margin:4px 0 2px;}
-  .cityhead .sub{color:var(--muted);font-size:13px;margin-bottom:10px;}
-  .item{border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px;cursor:pointer;background:var(--card);}
+  .city .cn{font-size:15px;font-weight:400;color:var(--accent);}
+  .city .cc{font-size:12px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums;}
+  .back{background:none;border:none;color:var(--accent);font-size:14px;cursor:pointer;padding:10px 0 2px;}
+  .cityhead h2{font-size:17px;font-weight:700;margin:6px 0 2px;}
+  .cityhead .sub{color:var(--muted);font-size:12px;margin-bottom:4px;}
+  .kindhead{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;font-weight:700;color:var(--muted2);
+            padding:18px 0 2px;border-bottom:1px solid var(--hair);}
+  .kindhead span:last-child{font-weight:400;color:var(--muted);}
+  .item{border-bottom:1px solid var(--hair);padding:11px 0;cursor:pointer;}
   .item-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
-  .item-name{font-size:15px;font-weight:600;}
-  .item-sub{font-size:13px;color:var(--muted);margin-top:3px;}
-  .toorder{margin-top:5px;font-size:12px;}
+  .item-name{color:var(--accent);font-size:15px;font-weight:400;}
+  .item-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+  .toorder{margin-top:5px;font-size:12px;color:var(--text);}
   .tolabel{color:var(--muted);}
-  .badge{font-size:12px;border-radius:6px;padding:2px 7px;flex-shrink:0;font-weight:600;}
-  .badge.y{background:rgba(10,122,36,.12);color:var(--good);}
-  .badge.n{background:rgba(204,0,0,.10);color:var(--bad);}
-  .badge.d{background:rgba(102,102,102,.12);color:var(--muted);}
-  .closed{font-size:10px;font-weight:700;letter-spacing:.05em;color:var(--bad);border:1px solid var(--bad);border-radius:4px;padding:0 4px;margin-left:6px;vertical-align:2px;}
-  .item.isclosed .item-name{color:var(--bad);}
-  .addcity{display:block;width:100%;padding:12px;margin-top:6px;text-align:center;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--accent);font-size:14px;cursor:pointer;}
-  .fab{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom, 0px));right:max(20px, calc(var(--vw, 100vw) - 620px));width:54px;height:54px;border-radius:50%;background:var(--accent);color:#fff;font-size:28px;display:flex;align-items:center;justify-content:center;border:none;box-shadow:0 4px 14px rgba(0,0,0,.3);z-index:20;cursor:pointer;}
-  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:30;display:none;}
+  .badge{font-weight:600;font-size:12px;padding:2px 0;flex-shrink:0;}
+  .badge.y{color:var(--good);} .badge.n{color:var(--bad);} .badge.d{color:#c0c0c0;}
+  .closedtag{color:var(--bad);font-size:11px;text-transform:uppercase;letter-spacing:.06em;border:1px solid var(--bad);
+             border-radius:3px;padding:0 4px;margin-left:7px;white-space:nowrap;vertical-align:1px;}
+  .item.isclosed .item-name, h2.closed{color:var(--bad);}
+  .item.isclosed .item-sub, .item.isclosed .toorder{color:#a05a5a;}
+  .addcity{display:block;width:100%;padding:14px 0;margin-top:4px;text-align:left;background:none;border:none;
+           color:var(--accent);font-size:14px;cursor:pointer;}
+
+  /* the one floating action */
+  .fab{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom, 0px));right:max(20px, calc(var(--vw, 100vw) - 620px));
+       background:#fff;color:var(--accent);padding:8px 14px;font-size:14px;border:1px solid var(--line);z-index:20;cursor:pointer;}
+
+  /* sheets */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.18);z-index:30;display:none;}
   .overlay.open{display:block;}
-  .sheet{position:fixed;left:0;right:0;bottom:0;max-height:90vh;overflow-y:auto;background:var(--card);border-radius:16px 16px 0 0;padding:20px 19px calc(26px + env(safe-area-inset-bottom, 0px));z-index:31;transform:translateY(105%);visibility:hidden;transition:transform .2s ease,visibility 0s linear .2s;font-size:14px;max-width:640px;margin:0;}
+  .sheet{position:fixed;left:0;right:0;bottom:0;max-height:90vh;overflow-y:auto;background:#fff;border-top:1px solid var(--line);
+         padding:20px 19px calc(26px + env(safe-area-inset-bottom, 0px));z-index:31;transform:translateY(105%);visibility:hidden;
+         transition:transform .2s ease,visibility 0s linear .2s;font-size:14px;max-width:640px;margin:0;}
   .sheet.open{transform:translateY(0);visibility:visible;transition:transform .2s ease;}
-  .sheet h2{margin:0 26px 5px 0;font-size:21px;line-height:1.25;}
-  .sheet .sub{color:var(--muted);font-size:14px;margin-bottom:12px;}
-  .close-x{position:absolute;top:12px;right:12px;background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;}
-  .field{margin-bottom:14px;}
-  .field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;}
-  .field input,.field select,.field textarea{width:100%;padding:10px 11px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:16px;font-family:inherit;}
-  .field textarea{min-height:56px;resize:vertical;}
-  .field .hint{font-size:12px;color:var(--muted);margin-top:4px;}
-  .field .val{white-space:pre-wrap;}
+  .sheet h2{margin:0 26px 5px 0;font-size:17px;font-weight:700;line-height:1.25;}
+  .sheet .sub{color:var(--muted2);font-size:14px;margin-bottom:12px;}
+  .closedline{color:var(--bad);font-size:13px;margin:2px 0 10px;}
+  .close-x{position:absolute;top:14px;right:14px;background:none;border:none;color:var(--muted2);font-size:22px;cursor:pointer;}
+  .field{margin-bottom:15px;}
+  .field label{display:block;font-size:12px;color:var(--muted2);margin-bottom:5px;}
+  .field input,.field select,.field textarea{width:100%;padding:10px 11px;border:1px solid var(--line);background:#fff;
+         color:var(--text);font-size:16px;}
+  .field textarea{min-height:60px;resize:vertical;}
+  .field .hint{font-size:11px;color:var(--muted2);margin-top:4px;}
+  .val{white-space:pre-wrap;}
   .maplink{color:var(--accent);text-decoration:none;}
-  .rateRow{display:flex;gap:6px;margin:2px 0 14px;}
-  .rateBtn{flex:1;padding:11px 0;text-align:center;border-radius:9px;border:1px solid var(--border);background:var(--card2);color:var(--muted);font-size:14px;font-weight:600;cursor:pointer;}
-  .rateBtn.y.on{color:var(--good);border-color:var(--good);background:rgba(10,122,36,.10);}
-  .rateBtn.n.on{color:var(--bad);border-color:var(--bad);background:rgba(204,0,0,.08);}
-  .rateBtn.d.on{color:var(--text);border-color:var(--text);}
-  .inline{display:flex;gap:6px;}
-  .inline input{flex:1;}
+  .rateRow{display:flex;gap:6px;margin:2px 0 12px;}
+  .rateBtn{flex:1;padding:11px 0;text-align:center;border:1px solid var(--hair);background:none;color:#bbb;font-size:14px;cursor:pointer;}
+  .rateBtn.on{font-weight:700;}
+  .rateBtn.on.y{border-color:var(--good);color:var(--good);}
+  .rateBtn.on.d{border-color:#999;color:#555;}
+  .rateBtn.on.n{border-color:var(--bad);color:var(--bad);}
+  /* To Order: the same box as eat + drink — one row per item, "ate it" moves it to ordered */
+  .wantrow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--hair);}
+  .wantrow:last-of-type{border-bottom:none;}
+  .wantrow .ate{font-size:12px;padding:4px 10px;border:1px solid var(--hair);background:none;color:var(--accent);cursor:pointer;flex:none;}
+  .wantadd{display:flex;gap:6px;margin-top:8px;}
+  .wantadd input{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);background:#fff;color:var(--text);font-size:16px;}
+  .wantadd button{flex:none;padding:8px 13px;border:1px solid var(--line);background:#fff;color:var(--accent);font-size:14px;cursor:pointer;}
+  .donerow{padding:7px 0;border-bottom:1px solid var(--hair);}
+  .donerow:last-of-type{border-bottom:none;}
   .btnrow{display:flex;gap:8px;margin-top:14px;}
-  .btn{flex:1;padding:12px;border-radius:9px;border:none;font-size:14px;font-weight:600;cursor:pointer;}
-  .btn.primary{background:var(--accent);color:#fff;}
-  .btn.ghost{background:var(--card2);color:var(--text);border:1px solid var(--border);}
-  .btn.small{flex:none;padding:10px 14px;}
-  .btn.danger{background:none;color:var(--bad);border:1px solid var(--bad);}
+  .btn{flex:1;padding:12px;border:none;font-size:14px;font-weight:400;cursor:pointer;}
+  .btn.primary{background:#111;color:#fff;border:1px solid #111;}
+  .btn.ghost{background:none;color:var(--accent);border:1px solid var(--hair);}
+  .btn.danger{background:none;color:var(--bad);border:1px solid var(--hair);}
+  .closedtoggle{background:none;border:none;color:var(--muted2);font-size:12px;text-decoration:underline;cursor:pointer;padding:0;margin-top:14px;}
+
   .gate{position:fixed;inset:0;background:var(--bg);z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;}
-  .gate p{color:var(--muted);font-size:14px;max-width:320px;margin-bottom:20px;}
-  .spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px;}
+  .gate h2{font-size:17px;margin:0 0 8px;}
+  .gate p{color:var(--muted2);font-size:14px;max-width:320px;margin:0 0 20px;}
+  .spinner{width:28px;height:28px;border:2px solid var(--hair);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px;}
   @keyframes spin{to{transform:rotate(360deg);}}
-  .errbox{background:rgba(204,0,0,.06);border:1px solid var(--bad);color:var(--bad);border-radius:8px;padding:10px;font-size:13px;margin-top:12px;max-width:340px;word-break:break-word;}
-  .banner{background:var(--card2);border-bottom:1px solid var(--border);font-size:12px;color:var(--muted);padding:6px 14px;text-align:center;}
+  .errbox{border:1px solid var(--bad);color:var(--bad);padding:10px;font-size:13px;margin-top:12px;max-width:340px;word-break:break-word;}
+  .banner{background:#fafafa;border-bottom:1px solid var(--hair);font-size:12px;color:var(--muted2);padding:6px 14px;text-align:center;}
   ::placeholder{color:var(--muted);}
 </style>
 </head>
@@ -119,17 +156,26 @@
 <div id="previewBanner" class="banner" style="display:none">preview — nothing here is saved</div>
 
 <header id="appHeader" style="display:none">
-  <div class="titlerow">
-    <h1>out of town</h1>
-    <a class="home" id="homeLink" href="https://nameisredacted.github.io/food-drink-app/">eat + drink ↗</a>
-  </div>
+  <h1>out of town <a class="loglink" id="homeLink" href="https://nameisredacted.github.io/food-drink-app/">eat + drink</a></h1>
+  <div class="ver" id="ver"></div>
   <div class="searchrow">
-    <input id="q" class="search" type="search" placeholder="search…" autocapitalize="none" autocomplete="off" enterkeyhint="search">
-    <button class="clearx" id="clearQ" aria-label="clear">×</button>
+    <input id="q" class="search" type="search" placeholder="search…" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="off" enterkeyhint="search">
+    <button class="clearx" id="clearQ" aria-label="clear">&times;</button>
   </div>
   <div class="row">
-    <div class="chip" id="nearBtn">near me</div>
-    <span class="ver" id="ver"></span>
+    <select class="kind" id="kindSel" aria-label="kind">
+      <option value="">everything</option>
+      <option value="eat + drink">eat + drink</option>
+      <option value="stay">stay</option>
+      <option value="see + do">see + do</option>
+      <option value="shop">shop</option>
+      <option value="golf">golf</option>
+      <option value="ski">ski</option>
+    </select>
+    <div class="chip" data-rating="y">y</div>
+    <div class="chip" data-rating="-">-</div>
+    <div class="chip" data-rating="n">n</div>
+    <div class="chip" id="nearBtn">nearest</div>
   </div>
 </header>
 
@@ -139,25 +185,27 @@
 <div class="overlay" id="overlay"></div>
 
 <div class="sheet" id="detailSheet">
-  <button class="close-x" data-close>×</button>
+  <button class="close-x" data-close>&times;</button>
   <div id="detailBody"></div>
 </div>
 
 <div class="sheet" id="formSheet">
-  <button class="close-x" data-close>×</button>
+  <button class="close-x" data-close>&times;</button>
   <h2 id="formTitle">add a place</h2>
   <div class="field"><label>Name</label><input id="f_name" autocomplete="off"></div>
-  <div class="field"><label>City</label><input id="f_city" list="cityList" autocomplete="off" placeholder="city, state">
+  <div class="field"><label>City</label><input id="f_city" list="cityList" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="city, state">
     <div class="hint" id="cityHint">e.g. Sedona, AZ — or Paris, France</div></div>
+  <div class="field"><label>Kind</label><select id="f_kind">
+    <option value="eat + drink">eat + drink</option><option value="stay">stay</option><option value="see + do">see + do</option>
+    <option value="shop">shop</option><option value="golf">golf</option><option value="ski">ski</option></select></div>
   <div class="field"><label>Category</label><input id="f_category" list="catList" autocomplete="off" autocapitalize="words"></div>
-  <div class="field"><label>Rating</label><select id="f_rating"><option value=""></option><option value="y">y (good)</option><option value="-">-</option><option value="n">n (no)</option></select></div>
-  <div class="field"><label>To Order</label><input id="f_toOrder" autocomplete="off"></div>
-  <div class="field"><label>Ordered</label><textarea id="f_ordered" placeholder="separate items with ;"></textarea></div>
+  <div class="field"><label>Rating</label><select id="f_rating"><option value=""></option><option value="-">-</option><option value="y">y (good)</option><option value="n">n (no)</option></select></div>
+  <div class="field"><label id="f_toOrderLabel">To Order</label><input id="f_toOrder" autocomplete="off" placeholder="separate items with ;"></div>
+  <div class="field"><label id="f_orderedLabel">Ordered</label><textarea id="f_ordered" placeholder="separate items with ;"></textarea></div>
   <div class="field"><label>Notes</label><textarea id="f_notes"></textarea></div>
   <div class="field"><label>Address</label><input id="f_address" autocomplete="off"></div>
   <div class="field"><label>Closed</label><input id="f_closed" autocomplete="off" placeholder="blank if open — e.g. closed Jun 2026"></div>
   <div class="btnrow"><button class="btn primary" id="saveBtn">save</button></div>
-  <div class="btnrow" id="deleteRow" style="display:none"><button class="btn danger" id="deleteBtn">delete this place</button></div>
 </div>
 
 <datalist id="cityList"></datalist>
@@ -165,7 +213,7 @@
 
 <script>
 /* ====== CONFIG ====== */
-const APP_VERSION = "2026.10.20-8";
+const APP_VERSION = "2026.10.27-1";
 const MSAL_CLIENT_ID = "7175d0f0-c775-4157-87de-0d85914a1350";
 const REDIRECT_URI = "https://nameisredacted.github.io/out-of-town/";
 const GRAPH_SCOPES = ["Files.ReadWrite", "User.Read"];
@@ -174,20 +222,42 @@ const SHEET = "Places";
 const TABLE = "PlacesTable";
 /* ===================== */
 
-/* Column order of PlacesTable. Every record written lists all of these. */
-const COLS = ['name','category','city','rating','toOrder','ordered','notes','address','lat','lng','closed'];
+/* Column order of PlacesTable. Every record written lists all of these.
+   Kind is the 12th column; a workbook that still has 11 columns keeps working
+   (rows are written at the width the table actually has). */
+const COLS = ['name','category','city','rating','toOrder','ordered','notes','address','lat','lng','closed','kind'];
+const KINDS = ['eat + drink','stay','see + do','shop','golf','ski'];
+const kindOf = v => KINDS.includes((v.kind || '').trim()) ? v.kind.trim() : 'eat + drink';
+/* eat + drink keeps its words (To Order / ate it / Ordered); everything else is a to-do list */
+const WORDS = {
+  food:  { todo: 'To Order', act: 'ate it', done: 'Ordered', add: 'to order', doneAdd: 'add what you ordered' },
+  other: { todo: 'To Do',    act: 'done',   done: 'Done',    add: 'to do',    doneAdd: 'add what you did' },
+};
+const words = v => kindOf(v) === 'eat + drink' ? WORDS.food : WORDS.other;
 
 /* ---------- backend ----------
    The app talks to a backend with four calls: list, add, update, remove.
    Live, that is the Graph Excel table API. The preview and the tests hand
    one in as window.OOT_BACKEND instead, so neither touches the workbook. */
 
+let tableWidth = COLS.length;
 function rowToObj(vals, index){
   const o = { index };
   COLS.forEach((c, i) => { const x = vals[i]; o[c] = x === null || x === undefined ? '' : String(x).trim(); });
   return o;
 }
-function objToRow(o){ return COLS.map(c => o[c] === undefined || o[c] === null ? '' : o[c]); }
+function objToRow(o){ return COLS.slice(0, tableWidth).map(c => o[c] === undefined || o[c] === null ? '' : o[c]); }
+
+/* Sign-in. Both apps share one MSAL cache (same client id, same origin), so a
+   browser signed in to eat + drink is signed in here. When nothing is cached
+   (a new device, a home-screen copy with its own storage, or a cache Safari
+   cleared) the page goes straight to Microsoft instead of waiting for a tap:
+   a browser Microsoft already knows comes straight back signed in. The button
+   only shows if that round trip just failed. */
+const LAST_USER = 'oot.lastUser', AUTO_TRY = 'oot.autoLoginAt';
+function store(k, v){ try{ v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v); }catch(e){} }
+function fetchStored(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function session(k, v){ try{ if(v === undefined) return sessionStorage.getItem(k); sessionStorage.setItem(k, v); }catch(e){ return null; } }
 
 function graphBackend(){
   const msalInstance = new msal.PublicClientApplication({
@@ -197,11 +267,17 @@ function graphBackend(){
   const enc = p => p.split('/').map(encodeURIComponent).join('/');
   const base = () => `https://graph.microsoft.com/v1.0/me/drive/root:/${enc(FILE_PATH)}:/workbook`;
   const rowsPath = `/worksheets('${encodeURIComponent(SHEET)}')/tables('${TABLE}')/rows`;
+  const hint = () => { const u = fetchStored(LAST_USER); return u ? { loginHint: u } : {}; };
+  function account(){
+    const a = msalInstance.getActiveAccount() || msalInstance.getAllAccounts()[0] || null;
+    if(a){ msalInstance.setActiveAccount(a); if(a.username) store(LAST_USER, a.username); }
+    return a;
+  }
   async function token(){
-    const accounts = msalInstance.getAllAccounts();
-    if(!accounts.length) throw new Error('not signed in');
-    try{ return (await msalInstance.acquireTokenSilent({ scopes: GRAPH_SCOPES, account: accounts[0] })).accessToken; }
-    catch(e){ await msalInstance.acquireTokenRedirect({ scopes: GRAPH_SCOPES }); throw e; }
+    const a = account();
+    if(!a) throw new Error('not signed in');
+    try{ return (await msalInstance.acquireTokenSilent({ scopes: GRAPH_SCOPES, account: a })).accessToken; }
+    catch(e){ await msalInstance.acquireTokenRedirect(Object.assign({ scopes: GRAPH_SCOPES, account: a }, hint())); throw e; }
   }
   async function graph(method, path, body){
     const res = await fetch(path.startsWith('http') ? path : base() + path, {
@@ -213,12 +289,23 @@ function graphBackend(){
   }
   return {
     live: true,
+    /* resolves true (signed in), false (show the button), or never (navigating to Microsoft) */
     async start(){
       await msalInstance.initialize();
-      await msalInstance.handleRedirectPromise();
-      return msalInstance.getAllAccounts().length > 0;
+      let failed = null;
+      try{
+        const res = await msalInstance.handleRedirectPromise();
+        if(res && res.account) msalInstance.setActiveAccount(res.account);
+      }catch(e){ failed = e; console.error(e); }
+      if(account()){ session(AUTO_TRY, ''); return true; }
+      const last = +(session(AUTO_TRY) || 0);
+      if(failed || Date.now() - last < 120000) return false;      // just tried: do not loop
+      session(AUTO_TRY, String(Date.now()));
+      gate(`<div class="spinner"></div><p>signing in…</p>`);
+      await msalInstance.loginRedirect(Object.assign({ scopes: GRAPH_SCOPES }, hint()));
+      return new Promise(() => {});
     },
-    signIn(){ msalInstance.loginRedirect({ scopes: GRAPH_SCOPES }); },
+    signIn(){ session(AUTO_TRY, String(Date.now())); msalInstance.loginRedirect(Object.assign({ scopes: GRAPH_SCOPES, prompt: 'select_account' }, hint())); },
     async list(){
       let out = [], next = rowsPath;
       while(next){
@@ -226,6 +313,7 @@ function graphBackend(){
         out = out.concat(d.value);
         next = d['@odata.nextLink'] || null;
       }
+      if(out.length && out[0].values && out[0].values[0]) tableWidth = Math.min(COLS.length, out[0].values[0].length);
       return out.map((r, i) => rowToObj(r.values[0], r.index !== undefined ? r.index : i));
     },
     async rowAt(index){
@@ -247,6 +335,7 @@ function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&
 function norm(s){ return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
 const key = v => norm(v.name) + '|' + norm(v.city);
 const isClosed = v => !!(v.closed || '').trim();
+const items = s => String(s || '').split(/\s*;\s*/).map(x => x.trim()).filter(Boolean);
 
 const STATES = {AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',DE:'Delaware',DC:'District of Columbia',FL:'Florida',GA:'Georgia',HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming',PR:'Puerto Rico'};
 
@@ -294,9 +383,16 @@ function fmtMi(m){ return m < 10 ? m.toFixed(1) + ' mi' : Math.round(m).toLocale
 let backend = null;
 let places = [];
 let lastLoad = 0, lastWrite = 0;
-const state = { view: 'index', city: '', query: '', near: null };
-let openPlace = null;      // the record a sheet was opened with
+const state = { view: 'index', city: '', query: '', near: null, kind: '', ratings: new Set() };
 let editing = null;        // null = adding
+
+/* the kind and rating filters apply everywhere: index counts, city pages, search, nearest */
+function shown(p){
+  if(state.kind && kindOf(p) !== state.kind) return false;
+  if(state.ratings.size && !state.ratings.has((p.rating || '').trim())) return false;
+  return true;
+}
+const visible = () => places.filter(shown);
 
 function allCities(){
   return [...new Set(places.map(p => p.city).filter(Boolean))].sort((a, b) => a.localeCompare(b));
@@ -340,35 +436,40 @@ function badge(r){
   if(!r) return '';
   return `<div class="badge ${r === 'y' ? 'y' : r === 'n' ? 'n' : 'd'}">${esc(r)}</div>`;
 }
-function closedTag(v){ return isClosed(v) ? '<span class="closed">CLOSED</span>' : ''; }
+function closedTag(v){ return isClosed(v) ? '<span class="closedtag">closed</span>' : ''; }
 
 function placeItem(v, showCity){
-  const sub = [v.category, showCity ? v.city : ''].filter(Boolean).join(' · ');
+  const sub = [v.category, showCity ? v.city : '', !state.kind && showCity && kindOf(v) !== 'eat + drink' ? kindOf(v) : ''].filter(Boolean).join(' · ');
+  const todo = items(v.toOrder);
   return `<div class="item ${isClosed(v) ? 'isclosed' : ''}" data-key="${esc(key(v))}">
     <div class="item-top"><div class="item-name">${esc(v.name)}${closedTag(v)}</div>${badge(v.rating)}</div>
     ${sub ? `<div class="item-sub">${esc(sub)}</div>` : ''}
-    ${v.toOrder ? `<div class="toorder"><span class="tolabel">to order:</span> ${esc(v.toOrder)}</div>` : ''}
+    ${todo.length ? `<div class="toorder"><span class="tolabel">${words(v).todo}:</span> ${esc(todo.join(', '))}</div>` : ''}
   </div>`;
 }
 function cityRow(c, count, right, short){
   return `<div class="city" data-city="${esc(c)}"><span class="cn">${esc(short ? cityName(c) : c)}</span><span class="cc">${right || count}</span></div>`;
 }
-function countByCity(){
+function countByCity(list){
   const m = new Map();
-  places.forEach(p => { if(p.city) m.set(p.city, (m.get(p.city) || 0) + 1); });
+  list.forEach(p => { if(p.city) m.set(p.city, (m.get(p.city) || 0) + 1); });
   return m;
 }
+const plural = (n, one, many) => `${n.toLocaleString()} ${n === 1 ? one : (many || one + 's')}`;
 
 function render(){
   const main = $('main');
   $('clearQ').style.display = state.query ? '' : 'none';
   $('nearBtn').classList.toggle('active', !!state.near);
+  $('kindSel').classList.toggle('on', !!state.kind);
+  document.querySelectorAll('.chip[data-rating]').forEach(c => c.classList.toggle('active', state.ratings.has(c.dataset.rating)));
   const q = norm(state.query);
+  const pool = visible();
+  const counts = countByCity(pool);
 
   if(q){
-    const cities = allCities().filter(c => norm(c).includes(q));
-    const counts = countByCity();
-    const hits = sortPlaces(places.filter(p =>
+    const cities = [...counts.keys()].filter(c => norm(c).includes(q)).sort((a, b) => a.localeCompare(b));
+    const hits = sortPlaces(pool.filter(p =>
       [p.name, p.category, p.toOrder, p.ordered, p.notes].some(f => norm(f).includes(q))));
     main.innerHTML =
       (cities.length ? `<div class="region">cities</div>` + cities.map(c => cityRow(c, counts.get(c))).join('') : '') +
@@ -379,32 +480,35 @@ function render(){
   }
 
   if(state.view === 'city'){
-    const list = sortPlaces(places.filter(p => p.city === state.city));
+    const list = sortPlaces(pool.filter(p => p.city === state.city));
     const shut = list.filter(isClosed).length;
+    const groups = KINDS.map(k => [k, list.filter(v => kindOf(v) === k)]).filter(g => g[1].length);
+    const body = groups.length > 1
+      ? groups.map(([k, l]) => `<div class="kindhead"><span>${esc(k)}</span><span>${l.length}</span></div>` + l.map(v => placeItem(v, false)).join('')).join('')
+      : list.map(v => placeItem(v, false)).join('');
     main.innerHTML = `
       <button class="back" id="backBtn">‹ all cities</button>
       <div class="cityhead"><h2>${esc(cityName(state.city))}</h2>
-        <div class="sub">${esc(regionOf(state.city))} · ${list.length} ${list.length === 1 ? 'place' : 'places'}${shut ? ` (${shut} closed)` : ''}</div></div>
-      ${list.map(v => placeItem(v, false)).join('') || '<div class="note">nothing here yet.</div>'}
+        <div class="sub">${esc(regionOf(state.city))} · ${plural(list.length, 'place')}${shut ? ` (${shut} closed)` : ''}</div></div>
+      ${body || '<div class="note">nothing here matches the filter.</div>'}
       <button class="addcity" id="addHere">+ add a place in ${esc(cityName(state.city))}</button>`;
     return;
   }
 
-  const counts = countByCity();
   if(!counts.size){
-    main.innerHTML = `<div class="note">no cities yet — tap + to add the first place.</div>`;
+    main.innerHTML = places.length ? `<div class="note">nothing matches the filter.</div>` : `<div class="note">no cities yet — tap + to add the first place.</div>`;
     return;
   }
   if(state.near){
     const cents = cityCentroids();
-    const rows = allCities().filter(c => cents.has(c))
+    const rows = [...counts.keys()].filter(c => cents.has(c))
       .map(c => ({ c, d: miles(state.near, cents.get(c)) })).sort((a, b) => a.d - b.d);
     main.innerHTML = `<div class="note">${esc(state.near.label)}</div>` +
       rows.map(r => cityRow(r.c, counts.get(r.c), `${fmtMi(r.d)} · ${counts.get(r.c)}`)).join('');
     return;
   }
   const groups = new Map();
-  allCities().forEach(c => { const g = countryOf(c); (groups.get(g) || groups.set(g, []).get(g)).push(c); });
+  [...counts.keys()].sort((a, b) => a.localeCompare(b)).forEach(c => { const g = countryOf(c); (groups.get(g) || groups.set(g, []).get(g)).push(c); });
   const LAST = 'no country or state given';
   const order = [...groups.keys()].sort((a, b) =>
     (a === LAST) - (b === LAST) || (b === 'United States') - (a === 'United States') || a.localeCompare(b));
@@ -423,7 +527,7 @@ function render(){
     return `<details class="country" data-g="${esc(g)}"${openCountries.has(g) ? ' open' : ''}>
       <summary class="region"><span>${esc(g)}</span><span class="rcount">${n.toLocaleString()}</span></summary>${body}</details>`;
   };
-  main.innerHTML = `<div class="note">${counts.size.toLocaleString()} cities · ${places.length.toLocaleString()} places</div>` + order.map(section).join('');
+  main.innerHTML = `<div class="note">${plural(counts.size, 'city', 'cities')} · ${plural(pool.length, 'place')}</div>` + order.map(section).join('');
 }
 
 /* Which countries are expanded is a per-browser convenience: kept in
@@ -438,7 +542,7 @@ $('main').addEventListener('toggle', e => {
   saveOpen();
 }, true);
 
-/* ---------- navigation ---------- */
+/* ---------- navigation + filters ---------- */
 function openCity(c){
   state.view = 'city'; state.city = c; state.query = ''; $('q').value = '';
   render(); window.scrollTo(0, 0);
@@ -460,9 +564,15 @@ $('q').addEventListener('keydown', e => {
   if(e.key === 'Escape'){ $('q').value = ''; state.query = ''; render(); }
 });
 $('clearQ').addEventListener('click', () => { $('q').value = ''; state.query = ''; render(); $('q').focus(); });
+$('kindSel').addEventListener('change', () => { state.kind = $('kindSel').value; render(); });
+document.querySelectorAll('.chip[data-rating]').forEach(c => c.addEventListener('click', () => {
+  const r = c.dataset.rating;
+  state.ratings.has(r) ? state.ratings.delete(r) : state.ratings.add(r);
+  render();
+}));
 $('fab').addEventListener('click', () => openForm(null, state.view === 'city' && !state.query ? state.city : ''));
 
-/* ---------- near me: sorts the cities by distance ---------- */
+/* ---------- nearest: sorts the cities by distance ---------- */
 function position(){
   const get = opts => new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, opts));
   return get({ enableHighAccuracy: true, timeout: 8000, maximumAge: 0 })
@@ -482,7 +592,7 @@ $('nearBtn').addEventListener('click', async () => {
       ? 'Location is turned off for this site. On iPhone: Settings ▸ Privacy & Security ▸ Location Services ▸ Safari Websites.'
       : 'Could not get a location.');
   }finally{
-    $('nearBtn').textContent = 'near me';
+    $('nearBtn').textContent = 'nearest';
   }
 });
 
@@ -497,35 +607,45 @@ function mapsUrl(v){
 }
 
 function openDetail(v){
-  openPlace = v;
   const r = (v.rating || '').trim();
   const shut = isClosed(v);
+  const w = words(v);
+  const todo = items(v.toOrder), done = items(v.ordered);
+  const todoHtml = shut
+    ? (todo.length ? `<div class="field"><label>${w.todo}</label>${todo.map(t => `<div class="wantrow"><span>${esc(t)}</span></div>`).join('')}</div>` : '')
+    : `<div class="field"><label>${w.todo}</label>
+        ${todo.map((t, i) => `<div class="wantrow"><span>${esc(t)}</span><button class="ate" data-i="${i}" type="button">${w.act}</button></div>`).join('')}
+        <div class="wantadd"><input id="toOrderAdd" placeholder="${w.add}" autocomplete="off"><button id="toOrderAddBtn" type="button">add</button></div>
+      </div>`;
+  const doneHtml = (done.length || !shut) ? `<div class="field"><label>${w.done}</label>
+      ${done.map(t => `<div class="donerow">${esc(t)}</div>`).join('')}
+      ${shut ? '' : `<div class="wantadd"><input id="orderedAdd" placeholder="${w.doneAdd}" autocomplete="off"><button id="orderedAddBtn" type="button">add</button></div>`}
+    </div>` : '';
   $('detailBody').innerHTML = `
-    <h2>${esc(v.name)}${closedTag(v)}</h2>
-    <div class="sub">${esc([v.category, v.city].filter(Boolean).join(' · '))}</div>
-    <div class="field"><label>Address</label><a class="maplink" href="${esc(mapsUrl(v))}" target="_blank" rel="noopener">${esc(v.address || 'open in maps')}</a></div>
-    ${shut ? `<div class="field"><label>Closed</label><div class="val">${esc(v.closed)}</div></div>` : ''}
+    <h2 class="${shut ? 'closed' : ''}">${esc(v.name)}${closedTag(v)}</h2>
+    <div class="sub">${esc([v.category, v.city, kindOf(v) !== 'eat + drink' ? kindOf(v) : ''].filter(Boolean).join(' · '))}</div>
+    ${shut ? `<div class="closedline">${esc(v.closed)} — kept as a record and cannot be edited</div>` : ''}
     <div class="field"><label>Rating</label>
       ${shut ? `<div>${esc(r || '—')}</div>` : `<div class="rateRow">
         <div class="rateBtn y ${r === 'y' ? 'on' : ''}" data-r="y">y</div>
         <div class="rateBtn d ${r === '-' ? 'on' : ''}" data-r="-">-</div>
         <div class="rateBtn n ${r === 'n' ? 'on' : ''}" data-r="n">n</div></div>`}
     </div>
-    ${v.toOrder ? `<div class="field"><label>To Order</label><div class="val">${esc(v.toOrder)}</div></div>` : ''}
-    <div class="field"><label>Ordered</label>
-      ${v.ordered ? `<div class="val">${esc(v.ordered.split(/\s*;\s*/).filter(Boolean).join('\n'))}</div>` : ''}
-      ${shut ? '' : `<div class="inline" style="margin-top:6px"><input id="orderedAdd" placeholder="add what you ordered" autocomplete="off"><button class="btn ghost small" id="orderedAddBtn">add</button></div>`}
-    </div>
+    ${todoHtml}
+    ${doneHtml}
     ${v.notes ? `<div class="field"><label>Notes</label><div class="val">${esc(v.notes)}</div></div>` : ''}
-    <div class="btnrow"><button class="btn ghost" id="editBtn">edit place</button></div>`;
+    <div class="field"><label>Address</label><a class="maplink" href="${esc(mapsUrl(v))}" target="_blank" rel="noopener">${esc(v.address || 'open in maps')}</a></div>
+    ${shut ? '' : `<div class="btnrow"><button class="btn ghost" id="editBtn">edit</button><button class="btn danger" id="deleteBtn">delete</button></div>`}
+    <button class="closedtoggle" id="closedToggle" type="button">${shut ? 'reopen this place' : 'mark as closed'}</button>`;
   openSheet('detailSheet');
-  $('editBtn').onclick = () => openForm(v);
+  if($('editBtn')) $('editBtn').onclick = () => openForm(v);
+  if($('deleteBtn')) $('deleteBtn').onclick = () => removePlace(v);
+  $('closedToggle').onclick = () => toggleClosed(v);
   document.querySelectorAll('#detailBody .rateBtn').forEach(b => b.onclick = () => setRating(v, b.dataset.r));
-  const addBtn = $('orderedAddBtn');
-  if(addBtn){
-    addBtn.onclick = () => addOrdered(v);
-    $('orderedAdd').addEventListener('keydown', e => { if(e.key === 'Enter') addOrdered(v); });
-  }
+  document.querySelectorAll('#detailBody .ate').forEach(b => b.onclick = () => markDone(v, +b.dataset.i));
+  const wire = (inp, btn, fn) => { if(!$(btn)) return; $(btn).onclick = () => fn(v); $(inp).addEventListener('keydown', e => { if(e.key === 'Enter') fn(v); }); };
+  wire('toOrderAdd', 'toOrderAddBtn', addToOrder);
+  wire('orderedAdd', 'orderedAddBtn', addOrdered);
 }
 
 /* ---------- writes ----------
@@ -555,29 +675,72 @@ async function writeUpdate(v, next){
   refreshLists();
   return cur || Object.assign({}, next, { index });
 }
-
-async function setRating(v, r){
-  const next = Object.assign({}, v, { rating: (v.rating || '').trim() === r ? '' : r });
-  try{ const cur = await writeUpdate(v, next); render(); openDetail(cur); }
-  catch(e){ report(e); }
+async function change(v, fields, refocus){
+  try{
+    const cur = await writeUpdate(v, Object.assign({}, v, fields));
+    render(); openDetail(cur);
+    if(refocus && $(refocus)) $(refocus).focus();
+  }catch(e){ report(e); }
 }
-async function addOrdered(v){
+
+function setRating(v, r){ return change(v, { rating: (v.rating || '').trim() === r ? '' : r }); }
+
+function addToOrder(v){
+  const item = $('toOrderAdd').value.trim();
+  if(!item){ alert('Enter an item.'); return; }
+  const list = items(v.toOrder);
+  if(list.some(x => norm(x) === norm(item))){ alert(`${item} is already there.`); return; }
+  return change(v, { toOrder: list.concat([item]).join('; ') }, 'toOrderAdd');
+}
+/* "ate it" / "done": the item leaves the to-do list and joins the done list */
+function markDone(v, i){
+  const todo = items(v.toOrder), item = todo[i];
+  if(item === undefined) return;
+  const done = items(v.ordered);
+  if(!done.some(x => norm(x) === norm(item))) done.push(item);
+  return change(v, { toOrder: todo.filter((_, j) => j !== i).join('; '), ordered: done.join('; ') });
+}
+function addOrdered(v){
   const item = $('orderedAdd').value.trim();
   if(!item){ alert('Enter an item.'); return; }
-  const list = (v.ordered || '').split(/\s*;\s*/).filter(Boolean);
+  const list = items(v.ordered);
   if(list.some(x => norm(x) === norm(item))){ alert(`${item} is already there.`); return; }
-  list.push(item);
-  try{ const cur = await writeUpdate(v, Object.assign({}, v, { ordered: list.join('; ') })); render(); openDetail(cur); }
-  catch(e){ report(e); }
+  return change(v, { ordered: list.concat([item]).join('; ') }, 'orderedAdd');
+}
+function toggleClosed(v){
+  const shut = isClosed(v);
+  const month = new Date().toLocaleString('en-US', { month: 'short', year: 'numeric' });
+  if(!confirm(shut ? `Mark ${v.name} as open again?` : `Mark ${v.name} as closed? It stays on the list, in red, and can no longer be edited.`)) return;
+  return change(v, { closed: shut ? '' : 'closed ' + month });
+}
+async function removePlace(v){
+  if(!confirm(`Delete ${v.name} in ${v.city}? This removes the row from the workbook.`)) return;
+  try{
+    const index = await liveIndex(v);
+    await backend.remove(index);
+    lastWrite = Date.now();
+    places = places.filter(p => p.index !== index);
+    places.forEach(p => { if(p.index > index) p.index--; });
+    refreshLists();
+    closeSheets();
+    if(!places.some(p => p.city === state.city)) state.view = 'index';
+    render();
+  }catch(e){ report(e); }
 }
 
+function syncFormWords(){
+  const w = $('f_kind').value === 'eat + drink' ? WORDS.food : WORDS.other;
+  $('f_toOrderLabel').textContent = w.todo; $('f_orderedLabel').textContent = w.done;
+}
+$('f_kind').addEventListener('change', syncFormWords);
 function openForm(v, city){
   editing = v || null;
   $('formTitle').textContent = v ? 'edit place' : 'add a place';
-  const src = v || { city: city || '' };
+  const src = v || { city: city || '', kind: state.kind || 'eat + drink' };
   ['name','city','category','rating','toOrder','ordered','notes','address','closed']
     .forEach(c => { $('f_' + c).value = src[c] || ''; });
-  $('deleteRow').style.display = v ? '' : 'none';
+  $('f_kind').value = kindOf(src);
+  syncFormWords();
   openSheet('formSheet');
   if(!v) setTimeout(() => $('f_name').focus(), 50);
 }
@@ -588,7 +751,7 @@ $('f_city').addEventListener('blur', () => {
     : known ? `${c} is on the list` : !c.includes(',') ? 'add the state or country — e.g. Sedona, AZ' : `${c} is a new city`;
 });
 
-/* Coordinates only place a city on the near-me list, so a new row borrows its
+/* Coordinates only place a city on the nearest list, so a new row borrows its
    city's centre when the city is known, and otherwise asks OpenStreetMap once. */
 async function geocode(rec){
   const cents = cityCentroids();
@@ -603,7 +766,7 @@ async function geocode(rec){
     clearTimeout(t);
     const d = await res.json();
     if(d && d[0]) return { lat: (+d[0].lat).toFixed(6), lng: (+d[0].lon).toFixed(6) };
-  }catch(e){ /* a place without coordinates still saves; it just is not on near me */ }
+  }catch(e){ /* a place without coordinates still saves; it just is not on nearest */ }
   if(cents.has(rec.city)){ const c = cents.get(rec.city); return { lat: c.lat.toFixed(6), lng: c.lng.toFixed(6) }; }
   return null;
 }
@@ -611,7 +774,7 @@ async function geocode(rec){
 $('saveBtn').addEventListener('click', async () => {
   const v = editing;   // read before anything can clear it
   const rec = {};
-  ['name','category','rating','toOrder','ordered','notes','address','closed'].forEach(c => { rec[c] = $('f_' + c).value.trim(); });
+  ['name','category','rating','toOrder','ordered','notes','address','closed','kind'].forEach(c => { rec[c] = $('f_' + c).value.trim(); });
   rec.city = canonCity($('f_city').value);
   if(!rec.name){ alert('Enter a name.'); return; }
   if(!rec.city){ alert('Enter a city.'); return; }
@@ -646,22 +809,6 @@ $('saveBtn').addEventListener('click', async () => {
   finally{ $('saveBtn').disabled = false; }
 });
 
-$('deleteBtn').addEventListener('click', async () => {
-  const v = editing;
-  if(!v || !confirm(`Delete ${v.name} in ${v.city}? This removes the row from the workbook.`)) return;
-  try{
-    const index = await liveIndex(v);
-    await backend.remove(index);
-    lastWrite = Date.now();
-    places = places.filter(p => p.index !== index);
-    places.forEach(p => { if(p.index > index) p.index--; });
-    refreshLists();
-    closeSheets();
-    if(!places.some(p => p.city === state.city)) state.view = 'index';
-    render();
-  }catch(e){ report(e); }
-});
-
 /* ---------- re-read when the page comes back ---------- */
 async function refreshIfStale(){
   if(!booted || document.visibilityState === 'hidden') return;
@@ -691,10 +838,11 @@ async function init(){
   try{
     if(backend.start && !(await backend.start())){
       gate(`<h2>out of town</h2><p>Sign in with the Microsoft account connected to your OneDrive.</p>
-        <button class="btn primary" id="signInBtn" style="flex:none;padding:12px 24px;">Sign in with Microsoft</button>`);
+        <button class="btn primary" id="signInBtn" style="flex:none;padding:12px 24px;">sign in with Microsoft</button>`);
       $('signInBtn').onclick = () => backend.signIn();
       return;
     }
+    gate(`<div class="spinner"></div><p>loading…</p>`);
     await loadAll();
   }catch(e){
     console.error(e);
@@ -709,7 +857,10 @@ async function init(){
   checkVersion();
 }
 window.__oot = { get places(){ return places; }, state, render, canonCity, openCity };
-init();
+/* MSAL's silent token renewal loads this page in a hidden iframe; booting the app
+   there only gets in its way. The preview runs in an iframe on purpose and brings
+   its own backend, so it still boots. */
+if(window.self === window.top || window.OOT_BACKEND) init();
 </script>
 </body>
 </html>
