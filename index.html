@@ -213,7 +213,7 @@
 
 <script>
 /* ====== CONFIG ====== */
-const APP_VERSION = "2026.10.27-1";
+const APP_VERSION = "2026.10.27-2";
 const MSAL_CLIENT_ID = "7175d0f0-c775-4157-87de-0d85914a1350";
 const REDIRECT_URI = "https://nameisredacted.github.io/out-of-town/";
 const GRAPH_SCOPES = ["Files.ReadWrite", "User.Read"];
@@ -344,8 +344,13 @@ function regionOf(city){
   const parts = city.split(',').map(s => s.trim()).filter(Boolean);
   if(parts.length < 2) return 'no state given';
   const last = parts[parts.length - 1];
+  if(last === 'United States') return MULTI_STATE;
   return STATES[last.toUpperCase()] || last;
 }
+/* Places that span several states ("Midwest, United States", named after the travel note they
+   came from) sit under the United States heading in their own group, after the states.
+   Places that span countries use "<area>, Global" and form a Global heading after every country. */
+const MULTI_STATE = 'across states', GLOBAL = 'Global';
 function cityName(city){ return city.split(',')[0].trim(); }
 /* Index grouping: every US city sits under one "United States" heading with a
    state heading below it; everywhere else is grouped by country. */
@@ -511,7 +516,7 @@ function render(){
   [...counts.keys()].sort((a, b) => a.localeCompare(b)).forEach(c => { const g = countryOf(c); (groups.get(g) || groups.set(g, []).get(g)).push(c); });
   const LAST = 'no country or state given';
   const order = [...groups.keys()].sort((a, b) =>
-    (a === LAST) - (b === LAST) || (b === 'United States') - (a === 'United States') || a.localeCompare(b));
+    (a === LAST) - (b === LAST) || (a === GLOBAL) - (b === GLOBAL) || (b === 'United States') - (a === 'United States') || a.localeCompare(b));
   const section = g => {
     const list = groups.get(g);
     const n = list.reduce((a, c) => a + counts.get(c), 0);
@@ -521,7 +526,7 @@ function render(){
     }else{
       const byState = new Map();
       list.forEach(c => { const st = regionOf(c); (byState.get(st) || byState.set(st, []).get(st)).push(c); });
-      body = [...byState.keys()].sort((a, b) => a.localeCompare(b))
+      body = [...byState.keys()].sort((a, b) => (a === MULTI_STATE) - (b === MULTI_STATE) || a.localeCompare(b))
         .map(st => `<div class="subregion">${esc(st)}</div>` + byState.get(st).map(c => cityRow(c, counts.get(c), null, true)).join('')).join('');
     }
     return `<details class="country" data-g="${esc(g)}"${openCountries.has(g) ? ' open' : ''}>

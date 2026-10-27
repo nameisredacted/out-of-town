@@ -278,5 +278,20 @@ function ok(cond, msg){ if(cond){ pass++; } else { fail++; console.log('FAIL:', 
   ok(/loginRedirect\(Object\.assign\(\{ scopes: GRAPH_SCOPES \}, hint\(\)\)\)/.test(src) && /AUTO_TRY/.test(src), 'signs in without a tap, once');
 }
 
+// 18. multi-state places sit last under the US; multi-country places form a Global heading last
+{
+  const rows = seed.concat([
+    { name: 'Route 66', category: 'Scenic Drive', city: 'Midwest, United States', kind: 'see + do' },
+    { name: 'Via Francigena', category: 'Trail', city: 'Europe, Global', kind: 'see + do' },
+    { name: 'Septime', city: 'Paris, France' },
+  ]);
+  const { d } = await app(rows);
+  const regions = [...d.querySelectorAll('.region')].map(e => (e.firstElementChild || e).textContent);
+  ok(JSON.stringify(regions) === JSON.stringify(['United States', 'France', 'Global']), 'Global last: ' + regions);
+  const states = [...d.querySelectorAll('.subregion')].map(e => e.textContent);
+  ok(states.at(-1) === 'across states', 'across states after the states: ' + states);
+  ok([...d.querySelectorAll('.city .cn')].some(e => e.textContent === 'Midwest'), 'shows the note area');
+}
+
 console.log(`${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
