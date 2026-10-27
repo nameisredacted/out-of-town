@@ -258,4 +258,13 @@ the preview is saved.
   the place and the country matches (territories accept their sovereign country). 99 cities /
   255 rows re-centred; 39 rows have no centre. Backup
   `archive/Out of Town (pre-type-review-3 20261027).xlsx`.
+- 2026-10-27: **guessed-type review, round 4.** Final totals over the 814: 406 confirmed,
+  195 kind/category fixed, 36 towns made specific inside the filed region, 189 not confirmed
+  online (Notes "type not confirmed online (Oct 2026)"), 22 not reached (Notes "type not yet
+  checked online (Oct 2026)", queue in the session's `work/rv5_00.tsv`). Searching the app for
+  "type not" lists them. Names corrected: Meissl & Schadn, PURO Gdańsk Stare Miasto, Grand
+  Juste, Ausseer Handdrucke, Kaohu Store. Refused: two kind changes resting on inference (The
+  Bunker, La Quinta) and moving David's Hole to the Dutch side. DLT (London) searched once more,
+  not found, dropped with the 347; Maple (London) kept as a weak match. 15,908 rows. Backup
+  `archive/Out of Town (pre-type-review-4 20261027).xlsx`.
 
