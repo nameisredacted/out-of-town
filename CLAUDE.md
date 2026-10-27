@@ -234,4 +234,11 @@ the preview is saved.
   49 still unconfirmed (Notes: "type not confirmed online (Oct 2026)"). Answers given "without a
   search" were not accepted and go back in the queue. 598 left (`work/rv2_*.tsv` in the session).
   Backup `archive/Out of Town (pre-type-review 20261027).xlsx`.
+- 2026-10-27: **guessed-type review, round 2.** Running totals: 222 confirmed, 98 kind/category
+  fixed (round 2 e.g. LUDÕ → a show, Harper's Bangkok and Peninsula House (Penang) → restaurants,
+  House of Tugu / HL 309 / Hibird → hotels, the Atlantic Club Comporta → resort), 24 towns made
+  specific inside the filed region (Hotel Tyrol → Selva di Val Gardena, Shiguchi → Kutchan,
+  Bratus Hotel → Aqaba), Green Heron B&B (Grand Rapids, MN) closed, 76 unconfirmed. A "not found"
+  from a search that lumped several names with OR is not taken as a miss — it goes back in the
+  queue. 416 left. Backup `archive/Out of Town (pre-type-review-2 20261027).xlsx`.
 
