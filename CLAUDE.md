@@ -191,4 +191,18 @@ the preview is saved.
   country/state checked; 32 cities found nothing). Now 16,158 rows. Built with xlsxwriter,
   table `A1:L16159`, 12 tableColumns, dimension agrees; every pre-existing row compared cell
   by cell against the backup — only the changes above differ.
+- 2026-10-27 (later): the **103 places with no single town** were placed, by the user's rule: use
+  the note they are in, how they were filed, and what the line itself says — never a vague
+  bucket. Route-type lines use their own endpoints (`Canterbury to Rome, Europe`, `Chicago to
+  Santa Monica, United States`, `Denver to Durango, CO`); lines filed under a town take that town
+  (Orient Express → Valletta, Malta; Lawson → Toyama); truly statewide passes and birding-trail
+  networks stay `Statewide, ST`; the Cruise note's ships use `<waters>, Cruise`; the rotating
+  NCAA / Army-Navy events use their next confirmed host (sources in Notes); 53 were looked up
+  online. Multi-state rows (`…, United States`) group under the US heading as **across states**,
+  after the states (2026.10.27-2). Only the Bay Trail, Bay Area Ridge Trail and New Tree Ranch
+  (Bay Area block) stay out. The 3 Marseille foods filed under the Marseille heading
+  (navettes, sardines, panisses) became eat + drink rows, category Local Specialty. The 73
+  remaining sub-items all belong to Bay Area places and stay out with them. Now 16,261 rows.
+  Backup `archive/Out of Town (pre-multi-place 20261027).xlsx`; list of what is out:
+  `import/not-imported-20261027b.txt`.
 
