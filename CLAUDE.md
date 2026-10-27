@@ -219,4 +219,10 @@ the preview is saved.
   `Chang Rai` → `Chiang Rai`, `San Pacho` → `San Pancho`. 347 rows now say "not found online
   (rechecked Oct 2026)". 16,257 rows. Backups `archive/Out of Town (pre-recheck 20261027).xlsx`
   and `(pre-recheck-2 20261027).xlsx`.
+- 2026-10-27: the user said **drop the 347** still-not-found rows. All were eat + drink from the
+  first import, none rated, ordered or closed (3 carried To Order items). Removed; listed in
+  `import/dropped-notfound-20261027.tsv` (gitignored). Every other row's coordinates were kept
+  from the previous build so no city centre moved; nothing else changed (cell-by-cell check).
+  DLT and Maple (London) were never rechecked and stay. 15,910 rows. Backup
+  `archive/Out of Town (pre-drop-notfound 20261027).xlsx`.
 
