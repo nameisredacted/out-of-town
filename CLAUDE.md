@@ -268,3 +268,16 @@ the preview is saved.
   not found, dropped with the 347; Maple (London) kept as a weak match. 15,908 rows. Backup
   `archive/Out of Town (pre-type-review-4 20261027).xlsx`.
 
+- 2026-10-27: **travel notes deleted from Apple Notes** (user: "for total committal delete the
+  relevant notes app files", keeping the two `local` notes). Before deleting, the current notes were
+  compared with the Oct 19 copy: 9 had been edited since (south, West, National, midwest, east,
+  mexico / latin / south america, asia, europe, africa). Their new lines went in first — 71 places
+  added, To Do added to Tenement Museum (Museum shop) and Crossroads Arts District (Art alley
+  corridor), Chiricahua National Monument renamed Chiricahua National Park as the note now reads.
+  Lines that repeat a place already in the app were not added again (Four Seasons Hotel Austin,
+  Heywood Hotel, St. Regis Punta Mita Resort, The Mining Exchange, The Rabbit Books & Bar, Book Club
+  Bar). 15,979 rows. Backup `archive/Out of Town (pre-notes-delta 20261027).xlsx`; current text of
+  the 10 notes checked is in `import/notes-20261027/` (gitignored), the rest in `import/notes-20261019/`.
+  Deleted in Notes: folders travel/to play (with international), to visit/international,
+  north america, skiing, family, and the 5 notes in travel/to visit — 36 notes, in Recently Deleted
+  for 30 days. Left: travel/to visit/local (`local`, `go to tamales bay`).
