@@ -241,4 +241,21 @@ the preview is saved.
   Bratus Hotel → Aqaba), Green Heron B&B (Grand Rapids, MN) closed, 76 unconfirmed. A "not found"
   from a search that lumped several names with OR is not taken as a miss — it goes back in the
   queue. 416 left. Backup `archive/Out of Town (pre-type-review-2 20261027).xlsx`.
+- 2026-10-27: **guessed-type review, round 3** (one search per place, no lumped OR searches).
+  Running totals: 311 confirmed, 147 kind/category fixed (round 3 e.g. The Portland Zoo → a bar,
+  The Moore Miami / Lopud 1483 / Karl August → stay, Antiquus (Zadar) → sushi restaurant,
+  Lou Passagin → Nice's port ferry), 30 towns made specific, 132 unconfirmed; 222 left.
+  Renamed: Ashen Rail Trail → Ashokan Rail Trail, Mont des Morious → Mont des Morios. LXR Hotels &
+  Resorts (the brand line under SAX Paris) folded into SAX Paris. Guess-words from the sort
+  ("likely …", "possibly …", first-person asides) are no longer carried into Notes; the person's
+  own words from the notes still are.
+  **Map centres corrected.** A city whose rows sit more than 80 km from where the city actually
+  is now takes the looked-up centre (`build_wb.py`): the first import had put every Catskills
+  and Hamptons row on New York City, the Hebridean isles on the Isle of Wight, the Oregon Coast /
+  Cascades / Outback on Oregon City, the Tuscan Archipelago on La Maddalena, and moved rows
+  (Libération market, Bourbon Steak) kept their old city's point. Lookups: Photon first,
+  Nominatim second opinion, an answer kept only when its name shares a distinctive word with
+  the place and the country matches (territories accept their sovereign country). 99 cities /
+  255 rows re-centred; 39 rows have no centre. Backup
+  `archive/Out of Town (pre-type-review-3 20261027).xlsx`.
 
