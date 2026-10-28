@@ -153,7 +153,8 @@ Vacaville (Solano) stayed.
 - **Category is only what the user entered (2026.10.28-12).** The -10 build hid `Restaurant` and
   similar; the user: it was a fossil of an early build that filled blanks, not something to hide.
   The data was cleared instead (Migration log, 2026-10-28) and the hiding removed — `catOf` shows
-  the cell as it is. Categories the import made up for eat + drink places were cleared too.
+  the cell as it is. Only `Restaurant` is cleared: the user has made no judgement on the other
+  categories, and they stay as they are (a wider clear was made and reverted the same day).
 - **Lat/Lng** exist only to sort cities for *near me*. A new place borrows its city's
   centre when the city is known and no address is typed; otherwise it asks OpenStreetMap
   Nominatim once (4 s timeout). A place without coordinates still saves.
@@ -431,3 +432,8 @@ the preview is saved.
   note line or a heading above it (`sbrino firenze (gelato)`, the London `Pubs` heading, `Levain
   Bakery`). Other kinds (stay, see + do, shop, golf, ski) were not touched. Only those cells
   changed (cell-by-cell check, other zip parts byte-identical).
+- 2026-10-28 (later still): **that clear was reverted** — the user asked only for the artificial
+  `Restaurant` to go and has made no judgement on the other categories. The workbook was untouched
+  in between, so `archive/Out of Town (pre-generated-cat-clear 20261028).xlsx` was copied back
+  byte for byte: all 5,200 categories are back, the 972 `Restaurant` cells stay blank. The cleared
+  state is kept as `archive/Out of Town (generated-cat-cleared, reverted 20261028).xlsx`.
