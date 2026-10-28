@@ -557,7 +557,7 @@ function ok(cond, msg){ if(cond){ pass++; } else { fail++; console.log('FAIL:', 
     return { dom, w: dom.window, d: dom.window.document, backend };
   })();
   w.eval('openDetail(places.find(p => p.name === "Tartine Manufactory"))'); await tick(dom);
-  const cells = [...d.querySelectorAll('#detailBody .wantrow')].map(r => ({ t: r.querySelector('span').textContent, struck: !!r.querySelector('.hadx'), had: (r.querySelector('.had') || {}).textContent || '' }));
+  const cells = [...d.querySelectorAll('#detailBody .wantrow')].map(r => ({ t: r.querySelector('span').textContent, struck: !!r.querySelector('.hadx'), had: (r.querySelector('.hadx') || { title: '' }).title }));
   const c = re => cells.find(x => re.test(x.t));
   ok(c(/sugar cookies/).struck && c(/sugar cookies/).had === 'already ordered at Wild Crumb (Bozeman)', 'had in another city: ' + JSON.stringify(c(/sugar cookies/)));
   ok(c(/6 kumamotos/).struck && /Hog Island Oyster Co\. \(San Francisco\)/.test(c(/6 kumamotos/).had), 'had in eat + drink: ' + JSON.stringify(c(/6 kumamotos/)));

@@ -139,9 +139,9 @@
   /* been = struck through, the way a line is crossed off in Notes: the name keeps its colour,
      a 1px line runs through it, nothing else changes */
   .struck,.item.been .item-name,h2.been{text-decoration:line-through;text-decoration-thickness:1px;}
-  /* a To Order item already ordered somewhere (here, another city, or in eat + drink): struck, muted */
-  .hadx{text-decoration:line-through;text-decoration-thickness:1px;color:var(--muted2);}
-  .had{display:block;font-size:11px;color:var(--muted2);margin-top:2px;}
+  /* a To Order item already ordered somewhere (here, another city, or in eat + drink): struck the
+     same way as a visited place - a 1px line, nothing else changes; where it was had is the hover title */
+  .hadx{text-decoration:line-through;text-decoration-thickness:1px;}
   /* a header whose every place is struck is struck too (city, state / country / county, region, area, kind) */
   .done > span:first-child, .city.done .cn, .area.done{text-decoration:line-through;text-decoration-thickness:1px;}
   ::placeholder{color:var(--muted);}
@@ -242,16 +242,16 @@
 
 <script>
 /* ====== CONFIG ====== */
-const APP_VERSION = "2026.10.28-10";
+const APP_VERSION = "2026.10.28-11";
 const MSAL_CLIENT_ID = "7175d0f0-c775-4157-87de-0d85914a1350";
 const REDIRECT_URI = "https://nameisredacted.github.io/out-of-town/";
 const GRAPH_SCOPES = ["Files.ReadWrite", "User.Read"];
 const FILE_PATH = "the list/Food + Drink/Claude/Out of Town.xlsx";
 const SHEET = "Places";
 const TABLE = "PlacesTable";
-const LIST_PATH = "the list/Food + Drink/Claude/travel list.txt";
+const LIST_PATH = "the list/Food + Drink/Claude/travel list.txt";   // the running list, plain text
 /* eat + drink's workbook: only its ordered log is read, so an item had at home is struck here too */
-const EATDRINK_PATH = "the list/Food + Drink/Claude/Food + Drink.xlsx";   // the running list, plain text
+const EATDRINK_PATH = "the list/Food + Drink/Claude/Food + Drink.xlsx";
 /* ===================== */
 
 /* Column order of PlacesTable. Every record written lists all of these.
@@ -446,7 +446,7 @@ function alreadyOrdered(item, v){
              : names.length > 1 ? names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1] : names.join('');
   return (here ? 'here' : '') + (here && names.length ? ' and ' : '') + (names.length ? 'at ' + list : '');
 }
-const todoHtml1 = (t, v) => alreadyOrdered(t, v) ? `<span class="hadx">${esc(t)}</span>` : esc(t);
+const todoHtml1 = (t, v) => { const w = alreadyOrdered(t, v); return w ? `<span class="hadx" title="already ordered ${esc(w)}">${esc(t)}</span>` : esc(t); };
 
 const STATES = {AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',DE:'Delaware',DC:'District of Columbia',FL:'Florida',GA:'Georgia',HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming',PR:'Puerto Rico',VI:'US Virgin Islands',GU:'Guam',AS:'American Samoa',MP:'Northern Mariana Islands',UM:'US Minor Outlying Islands'};
 
@@ -862,7 +862,7 @@ function mapsUrl(v){
 
 function wantCell(t, v){
   const where = alreadyOrdered(t, v);
-  return where ? `<span><span class="hadx">${esc(t)}</span><span class="had">already ordered ${esc(where)}</span></span>` : `<span>${esc(t)}</span>`;
+  return where ? `<span class="hadx" title="already ordered ${esc(where)}">${esc(t)}</span>` : `<span>${esc(t)}</span>`;
 }
 function openDetail(v){
   const been = isBeen(v);

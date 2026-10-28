@@ -144,7 +144,9 @@ Vacaville (Solano) stayed.
 - **Already ordered (2026.10.28-10).** On an eat + drink place, a To Order item already ordered
   anywhere — this place's Ordered, another travel place's Ordered, or **eat + drink's Menu Details
   log** (read-only, `homeOrdered()`, at most once a minute, a failed read is silent) — is struck
-  through with *already ordered at X (Town)* / *here* underneath. Nothing is written. Same
+  through exactly like a visited place (1px line, nothing else changes; 2026.10.28-11 dropped the
+  grey and the caption line of -10). Where it was had is the hover title (*already ordered at X
+  (Town)* / *here*). Nothing is written. Same
   `itemKey()` rule as eat + drink: case, accents, punctuation, plural s and a count are ignored;
   a labelled or regional item (`Kumamoto, Humboldt Bay`) is its own thing. A to-do on any other
   kind is never struck.
