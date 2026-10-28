@@ -87,11 +87,12 @@ Vacaville (Solano) stayed.
   nothing open = everywhere. The kind and y / - / n filters apply; the same city never comes up
   twice in a row. Open order is the insertion order of `oot.openGroups`; a re-render that
   restores a remembered dropdown does not reorder it.
-- **Type (2026.10.28-8)** — the system font and its bold headings were rejected twice; the serif
-  pass (-7, Newsreader + Inter) was rejected as a "craigslist look", but its **structure was liked**:
-  big regular-weight headings, hierarchy from size not bold. -8 keeps that structure in one sans,
-  **Geist** (Google Fonts, 300–600), everywhere: title 22px/500, regions 21px/400, city and place
-  names on their page / sheet 24–26px/500, tracking -.015em on those. Nothing above 600. No serif.
+- **Type and layout (2026.10.28-9)** — the user rejected -7 and -8 outright ("craigslist look",
+  layout included: big headings, serif or not). What they liked is the **-6 structure** (15px
+  headings, one black rule per region, the -6 sizes and gutters); what they disliked was the
+  system font's bold. -9 = the -6 CSS exactly, set in **Geist** (Google Fonts) with every 700
+  lowered to 600, and tighter rows (region 7px, state / country 3px, town 3px, place 7px, area
+  14px top). No `eat + drink` link in the header. Do not bring back large headings or a serif.
 - **local (2026.10.28-7)**: `AREAS` starts with a `local` region. A `Town, CA` inside the nine
   Bay Area counties (`BAY_TOWNS`, incorporated cities plus the unincorporated places the notes use)
   files under local ▸ `<County> County`; `Bay Area, CA` = `across the bay area` (Bay Trail, Ridge
@@ -126,12 +127,17 @@ Vacaville (Solano) stayed.
   marks write `x`; the old `y` / `-` / `n` read as struck and stay as written until unstruck.
   **The user rejected** been / not yet filter chips and a big been button (-7): no filter, no
   button. Struck places are **not segregated** — they sort with the rest (by name, closed last).
-  The only control is a small text link beside `mark as closed` (`strike through` / `remove the
-  strikethrough`), plus the form's Struck through select and `~~…~~` in the list.
+  The only control is a small text link under edit / delete (`strike through` / `remove the
+  strikethrough`), plus the form's Struck through select and `~~…~~` in the list. ` - x` at the
+  end of a line in the old notes also meant visited (user, 2026-10-28).
   **Roll-up**: any header whose every place is struck is struck too — a town (at least one place
   struck, all others struck or closed), a state / country / county, a region, an area label, a kind
   heading and the city name on a city page. Computed from what the kind filter shows.
-- **Closed**: any non-empty value means closed (`closed Jun 2026`). Closed rows sort last,
+- **Closed places are not kept** (2026.10.28-9, user: "no closed places listed, just remove
+  them"): the 10 closed rows were deleted, `shown()` drops any row with Closed set, and the
+  closed link and form field are gone. The column stays so the table shape does not change.
+  What follows is the old behaviour, kept for history.
+- **Closed** (before -9): any non-empty value means closed (`closed Jun 2026`). Closed rows sort last,
   carry a CLOSED tag and take no rating or ordered items. The detail sheet's **mark as closed**
   writes `closed <Mon YYYY>`; **reopen this place** clears it. Edit and delete sit on the
   detail sheet (as in eat + drink), not in the form.
@@ -367,3 +373,25 @@ the preview is saved.
   Granzella's fish and chips as done), then the 582 local places with their 6 struck lines marked.
   608 entries, none loose. The Amtrak lines (Gold Runner, Capitol Corridor, the California rail
   pass, San Joaquins) are left out: where the earlier import filed the routes is not known here.
+- 2026-10-28 (later): **workbook pass with the OneDrive folder connected** (backup
+  `archive/Out of Town (pre-local-struck 20261028).xlsx`). Built with xlsxwriter, `A1:L16546`,
+  every surviving row compared cell by cell with the backup. 15,979 → **16,545 rows**:
+  - 10 closed rows deleted.
+  - The list text was applied through the app's own `planList` / send (jsdom, in-memory backend),
+    not pasted by the user: 22 existing rows struck (Granzellas' fish and chips to Ordered), 583
+    added — the 582 local places (Bay Area towns now under local) plus Secret Savory (Seattle;
+    dropped Oct 27 as not found, restored because the notes strike it). Seven same-place twins in
+    the local lines merged (SF Botanical Garden, Sunol, Filoli, Four Seasons Napa, Burleigh
+    Murray, Reinhardt Redwood, Luna Rienne). Kinds of ~90 local rows corrected from knowledge
+    (golf courses named without "golf", hotels, wineries, Vacaville restaurants); the rest kept
+    the guess, most as see + do.
+  - Existing twins merged: West Alley BBQ (rated `&` row kept), Philippe's + Phillippe The
+    Original → **Philippe The Original** (notes spelling kept in Notes), struck.
+  - ` - x` = visited: Dupont Circle Hotel, Casa del Mar, Shutters on the Beach, Denali NP,
+    Valdez, George Parks Highway, Fairbanks, Delta Junction, Tunnel Tops struck.
+  - Amtrak: Gold Runner (= the San Joaquins, renamed Nov 2025), Capitol Corridor and the
+    California rail pass struck; on the pass, the two struck routes moved to Ordered; **Pacific
+    Surfliner** and **Coast Starlight** added (Los Angeles, CA, route in Notes, not struck).
+  - Coordinates for the 117 new Bay Area towns from Nominatim (name-checked; Knights Valley set by
+    hand), all inside the Bay Area box.
+  `travel list to paste.txt` was deleted after use so it cannot be sent twice.

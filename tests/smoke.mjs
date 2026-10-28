@@ -175,16 +175,19 @@ function ok(cond, msg){ if(cond){ pass++; } else { fail++; console.log('FAIL:', 
   ok(d.querySelector('.note').textContent.includes('nothing matches'), 'empty result copy');
 }
 
-// 10. closed places: tagged, last in the city, no been button
+// 10. closed places are not listed anywhere; no closed control or field
 {
   const rows = seed.map(r => Object.assign({}, r));
   rows[2].closed = 'closed Jun 2026';
-  const { d, dom } = await app(rows);
+  const { d, dom, w } = await app(rows);
   d.querySelector('.city[data-city="Sedona, AZ"]').click(); await tick(dom);
   const items = [...d.querySelectorAll('.item')];
-  ok(items.at(-1).textContent.includes('FreeForm') && items.at(-1).querySelector('.closedtag'), 'closed sorts last with tag');
-  items.at(-1).click(); await tick(dom);
-  ok(!d.getElementById('beenBtn') && !d.getElementById('orderedAdd') && !d.getElementById('toOrderAdd') && !d.getElementById('editBtn'), 'closed is read-only');
+  ok(items.length === 1 && !items[0].textContent.includes('FreeForm'), 'closed place hidden in the city');
+  w.__oot.state.view = 'index'; w.__oot.render();
+  ok(d.querySelector('.note').textContent.includes('4 places'), 'closed not counted: ' + d.querySelector('.note').textContent);
+  items[0].click(); await tick(dom);
+  ok(!d.getElementById('closedToggle') && !d.getElementById('f_closed'), 'no closed link or field');
+  ok(!d.querySelector('.loglink') && !d.getElementById('homeLink'), 'no eat + drink link');
 }
 
 // 11. near me sorts cities by distance
