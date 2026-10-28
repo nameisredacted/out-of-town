@@ -141,6 +141,16 @@ Vacaville (Solano) stayed.
   carry a CLOSED tag and take no rating or ordered items. The detail sheet's **mark as closed**
   writes `closed <Mon YYYY>`; **reopen this place** clears it. Edit and delete sit on the
   detail sheet (as in eat + drink), not in the form.
+- **Already ordered (2026.10.28-10).** On an eat + drink place, a To Order item already ordered
+  anywhere — this place's Ordered, another travel place's Ordered, or **eat + drink's Menu Details
+  log** (read-only, `homeOrdered()`, at most once a minute, a failed read is silent) — is struck
+  through with *already ordered at X (Town)* / *here* underneath. Nothing is written. Same
+  `itemKey()` rule as eat + drink: case, accents, punctuation, plural s and a count are ignored;
+  a labelled or regional item (`Kumamoto, Humboldt Bay`) is its own thing. A to-do on any other
+  kind is never struck.
+- **Generic categories (2026.10.28-10)**: `Restaurant`, `Restaurants`, `Food`, `Eat`, `Dining`…
+  are not shown (sub-lines, detail) or offered (`catOf`). They are still in the workbook — clearing
+  them needs the workbook folder connected; search still finds them.
 - **Lat/Lng** exist only to sort cities for *near me*. A new place borrows its city's
   centre when the city is known and no address is typed; otherwise it asks OpenStreetMap
   Nominatim once (4 s timeout). A place without coordinates still saves.

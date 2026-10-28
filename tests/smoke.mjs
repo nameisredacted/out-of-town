@@ -541,5 +541,35 @@ function ok(cond, msg){ if(cond){ pass++; } else { fail++; console.log('FAIL:', 
   ok(backend.table.find(r => r[0] === 'The Palm Theater')[3] === 'x' && backend.table.length === rows.length, 'no new rows');
 }
 
+
+// 37. already ordered: struck on To Order wherever it was had - here, another city, or eat + drink's log
+{
+  const rows = seed.concat([
+    { name: 'Tartine Manufactory', category: 'Bakery', city: 'Los Angeles, CA', toOrder: 'sugar cookies; Kumamoto, Humboldt Bay; 6 kumamotos; morning bun', lat: '34.05', lng: '-118.24' },
+    { name: 'Hike Spot', city: 'Bozeman, MT', kind: 'see + do', toOrder: 'Sugar Cookie', lat: '45.68', lng: '-111.04' },
+  ]);
+  const { d, dom, w, backend } = await (async () => {
+    const backend = memBackend(rows);
+    backend.homeOrdered = async () => [{ venue: 'Hog Island Oyster Co.', location: 'San Francisco, CA', item: 'kumamoto x6' }];
+    const dom = new JSDOM(html, { runScripts: 'dangerously', pretendToBeVisual: true, url: 'https://example.test/',
+      beforeParse(w){ w.OOT_BACKEND = backend; w.alert = () => {}; w.confirm = () => true; w.scrollTo = () => {}; } });
+    await tick(dom, 60);
+    return { dom, w: dom.window, d: dom.window.document, backend };
+  })();
+  w.eval('openDetail(places.find(p => p.name === "Tartine Manufactory"))'); await tick(dom);
+  const cells = [...d.querySelectorAll('#detailBody .wantrow')].map(r => ({ t: r.querySelector('span').textContent, struck: !!r.querySelector('.hadx'), had: (r.querySelector('.had') || {}).textContent || '' }));
+  const c = re => cells.find(x => re.test(x.t));
+  ok(c(/sugar cookies/).struck && c(/sugar cookies/).had === 'already ordered at Wild Crumb (Bozeman)', 'had in another city: ' + JSON.stringify(c(/sugar cookies/)));
+  ok(c(/6 kumamotos/).struck && /Hog Island Oyster Co\. \(San Francisco\)/.test(c(/6 kumamotos/).had), 'had in eat + drink: ' + JSON.stringify(c(/6 kumamotos/)));
+  ok(!c(/Humboldt/).struck, 'a labelled item is its own thing');
+  ok(!c(/morning bun/).struck, 'never ordered: not struck');
+  w.eval('openDetail(places.find(p => p.name === "Hike Spot"))'); await tick(dom);
+  ok(!d.querySelector('#detailBody .hadx'), 'a to-do on a see + do place is never struck');
+  w.eval('openDetail(places.find(p => p.name === "Vino di Sedona"))'); await tick(dom);
+  ok(!/Restaurant/.test(d.querySelector('#detailBody .sub').textContent), '"Restaurant" not shown: ' + d.querySelector('#detailBody .sub').textContent);
+  ok(![...d.querySelectorAll('#catList option')].some(o => o.value === 'Restaurant'), '"Restaurant" not offered');
+  ok(!backend.log.length, 'nothing written');
+}
+
 console.log(`${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

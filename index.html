@@ -139,6 +139,9 @@
   /* been = struck through, the way a line is crossed off in Notes: the name keeps its colour,
      a 1px line runs through it, nothing else changes */
   .struck,.item.been .item-name,h2.been{text-decoration:line-through;text-decoration-thickness:1px;}
+  /* a To Order item already ordered somewhere (here, another city, or in eat + drink): struck, muted */
+  .hadx{text-decoration:line-through;text-decoration-thickness:1px;color:var(--muted2);}
+  .had{display:block;font-size:11px;color:var(--muted2);margin-top:2px;}
   /* a header whose every place is struck is struck too (city, state / country / county, region, area, kind) */
   .done > span:first-child, .city.done .cn, .area.done{text-decoration:line-through;text-decoration-thickness:1px;}
   ::placeholder{color:var(--muted);}
@@ -239,14 +242,16 @@
 
 <script>
 /* ====== CONFIG ====== */
-const APP_VERSION = "2026.10.28-9";
+const APP_VERSION = "2026.10.28-10";
 const MSAL_CLIENT_ID = "7175d0f0-c775-4157-87de-0d85914a1350";
 const REDIRECT_URI = "https://nameisredacted.github.io/out-of-town/";
 const GRAPH_SCOPES = ["Files.ReadWrite", "User.Read"];
 const FILE_PATH = "the list/Food + Drink/Claude/Out of Town.xlsx";
 const SHEET = "Places";
 const TABLE = "PlacesTable";
-const LIST_PATH = "the list/Food + Drink/Claude/travel list.txt";   // the running list, plain text
+const LIST_PATH = "the list/Food + Drink/Claude/travel list.txt";
+/* eat + drink's workbook: only its ordered log is read, so an item had at home is struck here too */
+const EATDRINK_PATH = "the list/Food + Drink/Claude/Food + Drink.xlsx";   // the running list, plain text
 /* ===================== */
 
 /* Column order of PlacesTable. Every record written lists all of these.
@@ -373,7 +378,19 @@ function graphBackend(){
         { method: 'PUT', headers: { 'Authorization': 'Bearer ' + await token(), 'Content-Type': 'text/plain; charset=utf-8' }, body: text });
       if(!res.ok) throw new Error(`OneDrive list save failed: ${res.status}`);
     },
-    async remove(index){ await graph('DELETE', `${rowsPath}/itemAt(index=${index})`); }
+    async remove(index){ await graph('DELETE', `${rowsPath}/itemAt(index=${index})`); },
+    /* eat + drink's Menu Details log (Venue | Location | Vendor | Section | Item) - read only */
+    async homeOrdered(){
+      let out = [], next = `https://graph.microsoft.com/v1.0/me/drive/root:/${enc(EATDRINK_PATH)}:/workbook` +
+        `/worksheets('${encodeURIComponent('Menu Details')}')/tables('MenuDetailsTable')/rows`;
+      while(next){
+        const d = await graph('GET', next);
+        out = out.concat(d.value);
+        next = d['@odata.nextLink'] || null;
+      }
+      return out.map(r => r.values[0]).map(v => ({ venue: String(v[0] || ''), location: String(v[1] || ''), item: String(v[4] || '') }))
+        .filter(r => r.venue && r.item);
+    }
   };
 }
 
@@ -387,6 +404,49 @@ const isClosed = v => !!(v.closed || '').trim();
    (2026.10.28-7) read as been and are kept as they are until unstruck. */
 const isBeen = v => !!(v.rating || '').trim();
 const items = s => String(s || '').split(/\s*;\s*/).map(x => x.trim()).filter(Boolean);
+/* a category that says only "restaurant" says nothing: it is not shown or offered */
+const GENERIC_CATEGORIES = ['restaurant','restaurants','food','eat','eats','eatery','eateries','dining','eat drink','eat and drink'];
+const catOf = v => GENERIC_CATEGORIES.includes(norm(v && v.category)) ? '' : ((v && v.category) || '');
+
+/* ---------- already ordered ----------
+   The point of To Order is something new, not the same thing in a second place. An item on a
+   place's To Order that was already ordered - at this place, any other place here, or anywhere
+   in eat + drink's log - is struck through, with where it was had underneath. Nothing is removed.
+   Identity is the item's own text, loosened only for case, accents, punctuation, a plural s and a
+   count ("6 kumamotos" = "kumamoto x6"), so a labelled or regional item ("Kumamoto, Humboldt Bay")
+   only matches the same label. Only eat + drink places are marked; a to-do elsewhere is not a dish. */
+function itemKey(s){
+  return norm(String(s || '').replace(/&/g, ' and '))
+    .replace(/^\d+ (x )?/, '')
+    .replace(/ (x ?\d+|\d+ ?(pc|pcs|piece|pieces)|\d+)$/, '')
+    .split(' ').map(w => w.length > 3 && /[^s]s$/.test(w) ? w.slice(0, -1) : w).join(' ');
+}
+let homeOrdered = [], homeOrderedAt = 0;
+let orderedAt = new Map();   // itemKey -> [{ key, label }]
+function buildOrderedIndex(){
+  orderedAt = new Map();
+  const add = (item, k, label) => {
+    const ik = itemKey(item);
+    if(!ik) return;
+    const at = orderedAt.get(ik) || orderedAt.set(ik, []).get(ik);
+    if(!at.some(x => x.key === k)) at.push({ key: k, label });
+  };
+  places.forEach(p => items(p.ordered).forEach(t => add(t, key(p), p.name + ' (' + cityName(p.city || '') + ')')));
+  homeOrdered.forEach(r => add(r.item, 'home|' + norm(r.venue) + '|' + norm(r.location), r.venue + (r.location ? ' (' + cityName(r.location) + ')' : '')));
+}
+/* "here", "at Zuni Cafe (San Francisco)", "here and at …", "at A, B and 2 more"; '' = never ordered */
+function alreadyOrdered(item, v){
+  if(kindOf(v) !== 'eat + drink') return '';
+  const at = orderedAt.get(itemKey(item));
+  if(!at || !at.length) return '';
+  const here = at.some(x => x.key === key(v));
+  const names = at.filter(x => x.key !== key(v)).map(x => x.label);
+  if(!here && !names.length) return '';
+  const list = names.length > 3 ? names.slice(0, 2).join(', ') + ' and ' + (names.length - 2) + ' more'
+             : names.length > 1 ? names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1] : names.join('');
+  return (here ? 'here' : '') + (here && names.length ? ' and ' : '') + (names.length ? 'at ' + list : '');
+}
+const todoHtml1 = (t, v) => alreadyOrdered(t, v) ? `<span class="hadx">${esc(t)}</span>` : esc(t);
 
 const STATES = {AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',DE:'Delaware',DC:'District of Columbia',FL:'Florida',GA:'Georgia',HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming',PR:'Puerto Rico',VI:'US Virgin Islands',GU:'Guam',AS:'American Samoa',MP:'Northern Mariana Islands',UM:'US Minor Outlying Islands'};
 
@@ -568,15 +628,20 @@ function sortPlaces(list){
 }
 
 async function loadAll(){
+  const home = (backend.homeOrdered && Date.now() - homeOrderedAt > 60000)
+    ? backend.homeOrdered().then(r => { homeOrdered = r; homeOrderedAt = Date.now(); }, e => console.warn('eat + drink log not read', e))
+    : null;
   places = await backend.list();
+  if(home) await home;
   lastLoad = Date.now();
   refreshLists();
 }
 function refreshLists(){
   dropCache();
+  buildOrderedIndex();
   $('cityList').innerHTML = allCities().map(c => `<option value="${esc(c)}">`).join('');
   const cats = new Map();
-  places.forEach(p => { if(p.category) cats.set(p.category, (cats.get(p.category) || 0) + 1); });
+  places.forEach(p => { const c = catOf(p); if(c) cats.set(c, (cats.get(c) || 0) + 1); });
   $('catList').innerHTML = [...cats.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
     .map(([c]) => `<option value="${esc(c)}">`).join('');
 }
@@ -585,12 +650,12 @@ function refreshLists(){
 function closedTag(v){ return isClosed(v) ? '<span class="closedtag">closed</span>' : ''; }
 
 function placeItem(v, showCity){
-  const sub = [v.category, showCity ? v.city : '', !state.kind && showCity && kindOf(v) !== 'eat + drink' ? kindOf(v) : ''].filter(Boolean).join(' · ');
+  const sub = [catOf(v), showCity ? v.city : '', !state.kind && showCity && kindOf(v) !== 'eat + drink' ? kindOf(v) : ''].filter(Boolean).join(' · ');
   const todo = items(v.toOrder);
   return `<div class="item${isClosed(v) ? ' isclosed' : ''}${isBeen(v) ? ' been' : ''}" data-key="${esc(key(v))}">
     <div class="item-top"><div class="item-name">${esc(v.name)}${closedTag(v)}</div></div>
     ${sub ? `<div class="item-sub">${esc(sub)}</div>` : ''}
-    ${todo.length ? `<div class="toorder"><span class="tolabel">${words(v).todo}:</span> ${esc(todo.join(', '))}</div>` : ''}
+    ${todo.length ? `<div class="toorder"><span class="tolabel">${words(v).todo}:</span> ${todo.map(t => todoHtml1(t, v)).join(', ')}</div>` : ''}
   </div>`;
 }
 let doneCities = new Set();
@@ -795,15 +860,19 @@ function mapsUrl(v){
   return 'https://maps.apple.com/?q=' + encodeURIComponent(v.name) + '&address=' + encodeURIComponent(v.address || v.city);
 }
 
+function wantCell(t, v){
+  const where = alreadyOrdered(t, v);
+  return where ? `<span><span class="hadx">${esc(t)}</span><span class="had">already ordered ${esc(where)}</span></span>` : `<span>${esc(t)}</span>`;
+}
 function openDetail(v){
   const been = isBeen(v);
   const shut = isClosed(v);
   const w = words(v);
   const todo = items(v.toOrder), done = items(v.ordered);
   const todoHtml = shut
-    ? (todo.length ? `<div class="field"><label>${w.todo}</label>${todo.map(t => `<div class="wantrow"><span>${esc(t)}</span></div>`).join('')}</div>` : '')
+    ? (todo.length ? `<div class="field"><label>${w.todo}</label>${todo.map(t => `<div class="wantrow">${wantCell(t, v)}</div>`).join('')}</div>` : '')
     : `<div class="field"><label>${w.todo}</label>
-        ${todo.map((t, i) => `<div class="wantrow"><span>${esc(t)}</span><button class="ate" data-i="${i}" type="button">${w.act}</button></div>`).join('')}
+        ${todo.map((t, i) => `<div class="wantrow">${wantCell(t, v)}<button class="ate" data-i="${i}" type="button">${w.act}</button></div>`).join('')}
         <div class="wantadd"><input id="toOrderAdd" placeholder="${w.add}" autocomplete="off"><button id="toOrderAddBtn" type="button">add</button></div>
       </div>`;
   const doneHtml = (done.length || !shut) ? `<div class="field"><label>${w.done}</label>
@@ -812,7 +881,7 @@ function openDetail(v){
     </div>` : '';
   $('detailBody').innerHTML = `
     <h2 class="${shut ? 'closed' : ''}${been ? ' been' : ''}">${esc(v.name)}${closedTag(v)}</h2>
-    <div class="sub">${esc([v.category, v.city, kindOf(v) !== 'eat + drink' ? kindOf(v) : ''].filter(Boolean).join(' · '))}</div>
+    <div class="sub">${esc([catOf(v), v.city, kindOf(v) !== 'eat + drink' ? kindOf(v) : ''].filter(Boolean).join(' · '))}</div>
     ${shut ? `<div class="closedline">${esc(v.closed)} — kept as a record and cannot be edited</div>` : ''}
     ${todoHtml}
     ${doneHtml}
