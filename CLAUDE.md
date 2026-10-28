@@ -74,18 +74,12 @@ Vacaville (Solano) stayed.
   Headings (2026.10.20-5, option H "one black rule"): region 15px bold under a single 1px black rule,
   place count muted on the right, no chevron; state/country 15px black, bold while open; town rows
   15px with a bare muted count and no dividers, indented 14px inside a state/country. City names are accent blue since 2026.10.27-1 (blue = tappable, as in
-  eat + drink). Everything shares one left-aligned 640px column (2026.10.20-7): `main`
-  (max-width 640px, no auto margins), the sticky header (inset 14px each side, so its bottom
-  rule ends where the country rules end), the detail sheet, and the + button (pinned 20px
-  inside the column's right edge on wide screens). Pixel values follow the H artboard:
-  16px side gutters for header and list, header padding 14px top / 10px bottom with 10px
-  between title, search and the near-me row, list padding 10px top, count line 4px / 6px.
-  Wide windows (2026.10.20-8): a small script at the top of `<body>` sets
-  `zoom = clamp(1, innerWidth / 640, 1.5)` on `<html>`, so the 640px layout scales up to fill
-  the window instead of sitting small beside empty space; past 960px wide it stops at 1.5x.
-  It also sets `--vw` (window width in zoomed px) for the + button, because `100vw` ignores
-  the zoom. Contrast comes from weight and the
-  one rule only; no capitals, bands or icons.
+  eat + drink). **Layout (2026.10.28-6) matches eat + drink**: full window width, no column
+  and no zoom (the 640px column and wide-window zoom of 2026.10.20-7 / -8 were removed — the
+  user found the type too big and the page not filling a stretched window). Header padding
+  14px 16px 10px, list 2px 16px, + button 20px from the bottom-right corner, sheets full width,
+  form inputs 14px (search 16px) — the same sizes as eat + drink's "minimal" pass. Contrast
+  comes from weight and the one rule only; no capitals, bands or icons.
 - **Random (2026.10.28-5)**: the `random` chip in the header opens a random **city** (never a
   single place; each city counts once however many places it has). Scope is the dropdown most
   recently opened that is still open and showing — open Europe ▸ Italy and it picks only Italian

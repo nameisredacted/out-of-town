@@ -25,11 +25,12 @@
   button,input,select,textarea{font-family:inherit;border-radius:0;}
 
   /* header */
-  header{position:sticky;top:env(safe-area-inset-top, 0px);background:var(--bg);margin:0 16px;padding:14px 0 10px;
-         z-index:10;border-bottom:1px solid var(--hair);max-width:608px;}
+  /* full window width, same sizes and gutters as eat + drink: no column, no zoom */
+  header{position:sticky;top:env(safe-area-inset-top, 0px);background:var(--bg);padding:14px 16px 10px;
+         z-index:10;border-bottom:1px solid var(--hair);}
   h1{margin:0 0 10px;font-size:15px;font-weight:700;letter-spacing:.01em;color:var(--text);}
   .loglink{font-weight:400;font-size:13px;color:var(--accent);text-decoration:none;margin-left:10px;}
-  .ver{position:absolute;top:14px;right:0;font-size:10px;color:#bbb;letter-spacing:.02em;}
+  .ver{position:absolute;top:12px;right:16px;font-size:10px;color:#bbb;letter-spacing:.02em;}
   .ver a{color:var(--accent);text-decoration:none;cursor:pointer;}
   .searchrow{position:relative;}
   .search{width:100%;background:#fff;border:none;border-bottom:1px solid var(--line);padding:8px 30px 8px 0;
@@ -45,7 +46,7 @@
   .count{color:#aaa;font-size:12px;margin-top:4px;}
 
   /* list */
-  main{padding:2px 16px 96px;max-width:640px;margin:0;}
+  main{padding:2px 16px 90px;}
   .note{color:#aaa;font-size:12px;padding:8px 0 6px;}
   .region{font-size:15px;font-weight:700;color:var(--text);margin:0;padding:11px 0;border-top:1px solid var(--text);}
   details.country > summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
@@ -89,7 +90,7 @@
            color:var(--accent);font-size:14px;cursor:pointer;}
 
   /* the one floating action */
-  .fab{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom, 0px));right:max(20px, calc(var(--vw, 100vw) - 620px));
+  .fab{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom, 0px));right:20px;
        background:#fff;color:var(--accent);padding:8px 14px;font-size:14px;border:1px solid var(--line);z-index:20;cursor:pointer;}
 
   /* sheets */
@@ -97,7 +98,7 @@
   .overlay.open{display:block;}
   .sheet{position:fixed;left:0;right:0;bottom:0;max-height:90vh;overflow-y:auto;background:#fff;border-top:1px solid var(--line);
          padding:20px 19px calc(26px + env(safe-area-inset-bottom, 0px));z-index:31;transform:translateY(105%);visibility:hidden;
-         transition:transform .2s ease,visibility 0s linear .2s;font-size:14px;max-width:640px;margin:0;}
+         transition:transform .2s ease,visibility 0s linear .2s;font-size:14px;}
   .sheet.open{transform:translateY(0);visibility:visible;transition:transform .2s ease;}
   .sheet h2{margin:0 26px 5px 0;font-size:17px;font-weight:700;line-height:1.25;}
   .sheet .sub{color:var(--muted2);font-size:14px;margin-bottom:12px;}
@@ -106,7 +107,7 @@
   .field{margin-bottom:15px;}
   .field label{display:block;font-size:12px;color:var(--muted2);margin-bottom:5px;}
   .field input,.field select,.field textarea{width:100%;padding:10px 11px;border:1px solid var(--line);background:#fff;
-         color:var(--text);font-size:16px;}
+         color:var(--text);font-size:14px;}
   .field textarea{min-height:60px;resize:vertical;}
   .field .hint{font-size:11px;color:var(--muted2);margin-top:4px;}
   .val{white-space:pre-wrap;}
@@ -122,7 +123,7 @@
   .wantrow:last-of-type{border-bottom:none;}
   .wantrow .ate{font-size:12px;padding:4px 10px;border:1px solid var(--hair);background:none;color:var(--accent);cursor:pointer;flex:none;}
   .wantadd{display:flex;gap:6px;margin-top:8px;}
-  .wantadd input{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);background:#fff;color:var(--text);font-size:16px;}
+  .wantadd input{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);background:#fff;color:var(--text);font-size:14px;}
   .wantadd button{flex:none;padding:8px 13px;border:1px solid var(--line);background:#fff;color:var(--accent);font-size:14px;cursor:pointer;}
   .donerow{padding:7px 0;border-bottom:1px solid var(--hair);}
   .donerow:last-of-type{border-bottom:none;}
@@ -144,19 +145,6 @@
 </style>
 </head>
 <body>
-<script>
-/* The layout is drawn for a 640px column. A wider window scales the whole page up
-   (to at most 1.5x) instead of leaving the column small with empty space beside it. */
-(function(){
-  const IDEAL = 640, MAX = 1.5;
-  const fit = () => {
-    const z = Math.min(MAX, Math.max(1, window.innerWidth / IDEAL)), r = document.documentElement;
-    r.style.zoom = z.toFixed(3);
-    r.style.setProperty('--vw', (window.innerWidth / z).toFixed(1) + 'px');   // window width in zoomed px
-  };
-  fit(); window.addEventListener('resize', fit);
-})();
-</script>
 
 <div class="gate" id="gate"><div id="gateInner"><div class="spinner"></div><p>loading…</p></div></div>
 
@@ -221,7 +209,7 @@
 
 <script>
 /* ====== CONFIG ====== */
-const APP_VERSION = "2026.10.28-5";
+const APP_VERSION = "2026.10.28-6";
 const MSAL_CLIENT_ID = "7175d0f0-c775-4157-87de-0d85914a1350";
 const REDIRECT_URI = "https://nameisredacted.github.io/out-of-town/";
 const GRAPH_SCOPES = ["Files.ReadWrite", "User.Read"];
