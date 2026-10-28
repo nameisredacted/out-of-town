@@ -150,9 +150,10 @@ Vacaville (Solano) stayed.
   `itemKey()` rule as eat + drink: case, accents, punctuation, plural s and a count are ignored;
   a labelled or regional item (`Kumamoto, Humboldt Bay`) is its own thing. A to-do on any other
   kind is never struck.
-- **Generic categories (2026.10.28-10)**: `Restaurant`, `Restaurants`, `Food`, `Eat`, `Dining`…
-  are not shown (sub-lines, detail) or offered (`catOf`). The workbook's 972 `Restaurant` cells
-  were cleared 2026-10-28 (Migration log); the filter stays so a new one never shows.
+- **Category is only what the user entered (2026.10.28-12).** The -10 build hid `Restaurant` and
+  similar; the user: it was a fossil of an early build that filled blanks, not something to hide.
+  The data was cleared instead (Migration log, 2026-10-28) and the hiding removed — `catOf` shows
+  the cell as it is. Categories the import made up for eat + drink places were cleared too.
 - **Lat/Lng** exist only to sort cities for *near me*. A new place borrows its city's
   centre when the city is known and no address is typed; otherwise it asks OpenStreetMap
   Nominatim once (4 s timeout). A place without coordinates still saves.
@@ -422,3 +423,11 @@ the preview is saved.
   string itself left in the table). Every cell compared with the backup: only those 972 changed;
   all other zip parts byte-identical; `A1:L16546` unchanged. eat + drink's 230 `Restaurant` rows were
   not touched — its data check's lookup replaces them with the cuisine or clears them.
+- 2026-10-28 (later): **made-up categories cleared from eat + drink places** (user: anything
+  generated and not entered goes back to blank). The Notes almost never name a type, so the
+  imports had guessed one. 5,200 Category cells on eat + drink rows set blank (backup
+  `archive/Out of Town (pre-generated-cat-clear 20261028).xlsx`). Kept, 89: the rows carried over
+  from the user's own sheet with the same category, and those whose type is in the user's own
+  note line or a heading above it (`sbrino firenze (gelato)`, the London `Pubs` heading, `Levain
+  Bakery`). Other kinds (stay, see + do, shop, golf, ski) were not touched. Only those cells
+  changed (cell-by-cell check, other zip parts byte-identical).

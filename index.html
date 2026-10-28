@@ -242,7 +242,7 @@
 
 <script>
 /* ====== CONFIG ====== */
-const APP_VERSION = "2026.10.28-11";
+const APP_VERSION = "2026.10.28-12";
 const MSAL_CLIENT_ID = "7175d0f0-c775-4157-87de-0d85914a1350";
 const REDIRECT_URI = "https://nameisredacted.github.io/out-of-town/";
 const GRAPH_SCOPES = ["Files.ReadWrite", "User.Read"];
@@ -405,8 +405,7 @@ const isClosed = v => !!(v.closed || '').trim();
 const isBeen = v => !!(v.rating || '').trim();
 const items = s => String(s || '').split(/\s*;\s*/).map(x => x.trim()).filter(Boolean);
 /* a category that says only "restaurant" says nothing: it is not shown or offered */
-const GENERIC_CATEGORIES = ['restaurant','restaurants','food','eat','eats','eatery','eateries','dining','eat drink','eat and drink'];
-const catOf = v => GENERIC_CATEGORIES.includes(norm(v && v.category)) ? '' : ((v && v.category) || '');
+const catOf = v => (v && v.category) || '';
 
 /* ---------- already ordered ----------
    The point of To Order is something new, not the same thing in a second place. An item on a

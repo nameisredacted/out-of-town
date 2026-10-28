@@ -566,8 +566,7 @@ function ok(cond, msg){ if(cond){ pass++; } else { fail++; console.log('FAIL:', 
   w.eval('openDetail(places.find(p => p.name === "Hike Spot"))'); await tick(dom);
   ok(!d.querySelector('#detailBody .hadx'), 'a to-do on a see + do place is never struck');
   w.eval('openDetail(places.find(p => p.name === "Vino di Sedona"))'); await tick(dom);
-  ok(!/Restaurant/.test(d.querySelector('#detailBody .sub').textContent), '"Restaurant" not shown: ' + d.querySelector('#detailBody .sub').textContent);
-  ok(![...d.querySelectorAll('#catList option')].some(o => o.value === 'Restaurant'), '"Restaurant" not offered');
+  ok(/Restaurant/.test(d.querySelector('#detailBody .sub').textContent), 'a category is shown as entered, nothing hidden: ' + d.querySelector('#detailBody .sub').textContent);
   ok(!backend.log.length, 'nothing written');
 }
 
