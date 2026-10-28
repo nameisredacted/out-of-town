@@ -151,8 +151,8 @@ Vacaville (Solano) stayed.
   a labelled or regional item (`Kumamoto, Humboldt Bay`) is its own thing. A to-do on any other
   kind is never struck.
 - **Generic categories (2026.10.28-10)**: `Restaurant`, `Restaurants`, `Food`, `Eat`, `Dining`…
-  are not shown (sub-lines, detail) or offered (`catOf`). They are still in the workbook — clearing
-  them needs the workbook folder connected; search still finds them.
+  are not shown (sub-lines, detail) or offered (`catOf`). The workbook's 972 `Restaurant` cells
+  were cleared 2026-10-28 (Migration log); the filter stays so a new one never shows.
 - **Lat/Lng** exist only to sort cities for *near me*. A new place borrows its city's
   centre when the city is known and no address is typed; otherwise it asks OpenStreetMap
   Nominatim once (4 s timeout). A place without coordinates still saves.
@@ -416,3 +416,9 @@ the preview is saved.
   refused); in a later session the same day **add_repo with push access worked**: clone into the
   sandbox, commit, push, then `git pull --ff-only` in the mounted repo (delete permission granted) so
   the Mac's copy matches. Try that first; GitHub Desktop is the fallback.
+- 2026-10-28: **generic categories cleared** (backup `archive/Out of Town (pre-generic-clear
+  20261028).xlsx`). 972 Category cells reading `Restaurant` (the only generic value present) set
+  blank by editing `sheet1.xml` in place (cell style kept, shared-string `count` lowered by 972, the
+  string itself left in the table). Every cell compared with the backup: only those 972 changed;
+  all other zip parts byte-identical; `A1:L16546` unchanged. eat + drink's 230 `Restaurant` rows were
+  not touched — its data check's lookup replaces them with the cuisine or clears them.
