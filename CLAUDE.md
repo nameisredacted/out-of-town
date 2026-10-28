@@ -31,7 +31,7 @@ Vacaville (Solano) stayed.
 `Name | Category | City | Rating | To Order | Ordered | Notes | Address | Lat | Lng | Closed | Kind`
 
 - **Kind** (12th column, 2026.10.27-1) is one of `eat + drink`, `stay`, `see + do`, `shop`,
-  `golf`, `ski`. Blank reads as `eat + drink`. The header's kind select and the y / - / n chips
+  `golf`, `ski`. Blank reads as `eat + drink`. The header's kind select and the been / not yet chips
   filter everything (index counts, city pages, search, nearest); a city page with more than one
   kind splits into a section per kind. The app writes rows at the width the table actually has
   (`tableWidth`, read from the first row), so an 11-column copy of the workbook still works.
@@ -87,6 +87,30 @@ Vacaville (Solano) stayed.
   nothing open = everywhere. The kind and y / - / n filters apply; the same city never comes up
   twice in a row. Open order is the insertion order of `oot.openGroups`; a re-render that
   restores a remembered dropdown does not reorder it.
+- **Type (2026.10.28-7)** — the user found the system font, and its bold headings above all, poor
+  after two passes. New approach: webfonts from Google Fonts. **Inter** (opsz, 400–600) for the
+  working text, **Newsreader** (text serif, 400–500) for structure: the title, region headings
+  (21px, 400), a city's or place's name on its page / sheet. No weight above 600 anywhere; open
+  states and kind headings are 500. Contrast comes from the change of face and size, not bold.
+  Counts stay Inter even inside serif headings.
+- **local (2026.10.28-7)**: `AREAS` starts with a `local` region. A `Town, CA` inside the nine
+  Bay Area counties (`BAY_TOWNS`, incorporated cities plus the unincorporated places the notes use)
+  files under local ▸ `<County> County`; `Bay Area, CA` = `across the bay area` (Bay Trail, Ridge
+  Trail). A Bay Area town missing from `BAY_TOWNS` falls under West ▸ California — add it there.
+  The user asked for this, overriding the earlier "Bay Area places stay out of the travel app".
+- **The list (2026.10.28-7)**: header chip `list` (`list N` when it holds lines) opens a sheet with one
+  running text written the way the travel notes were — a city line starts a city, a kind line
+  (`stay`, `eat`, `see + do`…) sets the kind under it, indented / dashed lines are to-do items,
+  `(…)` category, `#kind`, `Name — City` one-liners, `~~Name~~` = been, ` // ` a note. A live plan
+  under the text shows each place's city, region, kind and whether it is new or adds to an
+  existing row. **send** updates existing rows (new to-do items, been, a missing category or note;
+  each write goes through `liveIndex`), then adds the new ones 40 per POST (`addMany`; Graph
+  returns the first new row's index), coordinates from the city centre or one Nominatim lookup
+  per new city (1.1 s apart). Lines with no city stay in the list. The text is a plain file in
+  OneDrive, `the list/Food + Drink/Claude/travel list.txt` (`LIST_PATH`), so phone and laptop share
+  it; `localStorage` (`oot.list`, `oot.listDirty`) keeps this device's copy and wins over a read
+  that was in flight while typing. `parseList` / `planList` are pure and tested; with 16,000 rows
+  a 600-line plan takes ~20 ms (name+city and city lookups are cached, rebuilt in `refreshLists`).
 - **Look (2026.10.27-1)** follows eat + drink's "minimal" pass: accent `#1a4fd6`, hairlines
   `#ececec`, square corners everywhere, underline-only search, text-only filters (blue, bold
   black when on), list items as blue names over a grey sub-line with a hairline below, the + as
@@ -94,7 +118,12 @@ Vacaville (Solano) stayed.
   lowercase like eat + drink's.
 - **Ordered** replaces eat + drink's Menu Details table: items separated by `; `.
   The detail sheet appends one at a time.
-- **Rating** is `y` / `-` / `n` / blank, same as eat + drink.
+- **Been** (2026.10.28-7) replaced y / - / n. It lives in the **Rating** column (header not renamed —
+  that needs the workbook rebuilt): any value = been, shown the way a line is crossed off in Apple
+  Notes — the name struck through with a 1px line, nothing else changes. New marks write `x`; the
+  old `y` / `-` / `n` read as been and stay as written until unstruck (an edit through the form
+  keeps them). Header chips `been` (itself struck) / `not yet`, one at a time; the detail sheet has
+  one `been` toggle; the form a Been select. Sort in a city: open, then been, then closed.
 - **Closed**: any non-empty value means closed (`closed Jun 2026`). Closed rows sort last,
   carry a CLOSED tag and take no rating or ordered items. The detail sheet's **mark as closed**
   writes `closed <Mon YYYY>`; **reopen this place** clears it. Edit and delete sit on the
@@ -307,3 +336,14 @@ the preview is saved.
   two-continent countries in both regions — see Data model).
   No workbook change (15,979 rows). Every row lands in a named region; nothing falls to
   `elsewhere`.
+- 2026-10-28: **been, type, local, list** (2026.10.28-7, code only — no workbook change). The
+  local places are ready as list text: `import/local-list-20261028.txt` (gitignored) — the 582
+  Bay Area places from `not-imported-20261027b.txt` plus the Bay Trail and Ridge Trail (two
+  same-town twins merge, 582 entries, 117 towns), 58 of the 73 sub-items under their parents, a
+  `#kind` on every line (to play note → golf, else name words, else see + do). Pasting it into the
+  list and sending adds them live. **Not done, blocked**: the Notes strikethrough. The text
+  exports in `import/notes-*` carry no formatting, so which lines were struck (been) — and any
+  struck lines the imports skipped — needs `NoteStore.sqlite` (attribute runs, strikethrough =
+  field 7). This session's request for `~/Library/Group Containers/group.com.apple.notes` (and for
+  the OneDrive workbook folder) was refused; the deleted travel notes sit in Recently Deleted until
+  about 2026-11-26.

@@ -29,6 +29,7 @@ function memBackend(rows){
     async add(rec){ table.push(COLS.map(c => rec[c] || '')); log.push(['add', rec.name]); return table.length - 1; },
     async update(i, rec){ table[i] = COLS.map(c => rec[c] || ''); log.push(['update', i, rec.name]); },
     async remove(i){ table.splice(i, 1); log.push(['remove', i]); },
+    listText: '', async getList(){ return this.listText; }, async putList(t){ this.listText = t; log.push(['putList']); },
   };
 }
 
@@ -118,15 +119,16 @@ function ok(cond, msg){ if(cond){ pass++; } else { fail++; console.log('FAIL:', 
   ok(row[6] === 'next to the bookstore' && row[5] === 'Sugar Cookie; Chocolate Cookie' && row[8] === '45.68', 'edit kept ordered + coords: ' + row);
 }
 
-// 6. rating toggles and ordered items append
+// 6. been (struck through) toggles and ordered items append
 {
   const { d, dom, backend } = await app();
   d.querySelector('.city[data-city="New York, NY"]').click(); await tick(dom);
   [...d.querySelectorAll('.item')].find(e => e.textContent.includes("Salt Hank")).click(); await tick(dom);
-  d.querySelector('.rateBtn.y').click(); await tick(dom);
-  ok(backend.table[1][3] === 'y', 'rating set');
-  d.querySelector('.rateBtn.y').click(); await tick(dom);
-  ok(backend.table[1][3] === '', 'rating toggled off');
+  d.getElementById('beenBtn').click(); await tick(dom);
+  ok(backend.table[1][3] === 'x', 'been set');
+  ok(d.querySelector('#detailBody h2').classList.contains('been'), 'detail heading struck through');
+  d.getElementById('beenBtn').click(); await tick(dom);
+  ok(backend.table[1][3] === '', 'been toggled off');
   d.getElementById('orderedAdd').value = 'Double Smash';
   d.getElementById('orderedAddBtn').click(); await tick(dom);
   d.getElementById('orderedAdd').value = 'Fries';
@@ -140,8 +142,8 @@ function ok(cond, msg){ if(cond){ pass++; } else { fail++; console.log('FAIL:', 
   d.querySelector('.city[data-city="Sedona, AZ"]').click(); await tick(dom);
   [...d.querySelectorAll('.item')].find(e => e.textContent.includes('Vino')).click(); await tick(dom);
   backend.table.splice(0, 1);                 // another device deleted row 0
-  d.querySelector('.rateBtn.d').click(); await tick(dom);
-  ok(backend.table[2][0] === 'Vino di Sedona' && backend.table[2][3] === '-', 'wrote the shifted row');
+  d.getElementById('beenBtn').click(); await tick(dom);
+  ok(backend.table[2][0] === 'Vino di Sedona' && backend.table[2][3] === '', 'wrote the shifted row (an old n unstruck)');
   ok(backend.table[1][0] === 'FreeForm Coffee Roasters' && backend.table[1][3] === 'y', 'neighbour untouched');
 }
 
@@ -157,8 +159,8 @@ function ok(cond, msg){ if(cond){ pass++; } else { fail++; console.log('FAIL:', 
   d.querySelector('.city[data-city="Bozeman, MT"]') || w.__oot.openCity('Bozeman, MT');
   w.__oot.openCity('Bozeman, MT'); await tick(dom);
   d.querySelector('.item').click(); await tick(dom);
-  d.querySelector('.rateBtn.n').click(); await tick(dom);
-  ok(backend.table[3][0] === 'Wild Crumb' && backend.table[3][3] === 'n', 'write after delete hits the right row');
+  d.getElementById('beenBtn').click(); await tick(dom);
+  ok(backend.table[3][0] === 'Wild Crumb' && backend.table[3][3] === 'x', 'write after delete hits the right row');
 }
 
 // 9. search finds cities and places, including ordered items
@@ -173,7 +175,7 @@ function ok(cond, msg){ if(cond){ pass++; } else { fail++; console.log('FAIL:', 
   ok(d.querySelector('.note').textContent.includes('nothing matches'), 'empty result copy');
 }
 
-// 10. closed places: tagged, last in the city, no rating buttons
+// 10. closed places: tagged, last in the city, no been button
 {
   const rows = seed.map(r => Object.assign({}, r));
   rows[2].closed = 'closed Jun 2026';
@@ -182,7 +184,7 @@ function ok(cond, msg){ if(cond){ pass++; } else { fail++; console.log('FAIL:', 
   const items = [...d.querySelectorAll('.item')];
   ok(items.at(-1).textContent.includes('FreeForm') && items.at(-1).querySelector('.closedtag'), 'closed sorts last with tag');
   items.at(-1).click(); await tick(dom);
-  ok(!d.querySelector('#detailBody .rateBtn') && !d.getElementById('orderedAdd') && !d.getElementById('toOrderAdd') && !d.getElementById('editBtn'), 'closed is read-only');
+  ok(!d.getElementById('beenBtn') && !d.getElementById('orderedAdd') && !d.getElementById('toOrderAdd') && !d.getElementById('editBtn'), 'closed is read-only');
 }
 
 // 11. near me sorts cities by distance
@@ -305,8 +307,8 @@ function ok(cond, msg){ if(cond){ pass++; } else { fail++; console.log('FAIL:', 
   ok(d.querySelectorAll('.city').length === 1 && d.querySelector('.city').dataset.city === 'Scottsdale, AZ', 'golf filter leaves one city');
   ok(d.querySelector('.note').textContent.includes('1 city · 1 place'), 'filtered count line: ' + d.querySelector('.note').textContent);
   sel.value = ''; sel.dispatchEvent(new dom.window.Event('change')); await tick(dom);
-  d.querySelector('.chip[data-rating="y"]').click(); await tick(dom);
-  ok(d.querySelector('.note').textContent.includes('2 places'), 'rating filter: ' + d.querySelector('.note').textContent);
+  d.querySelector('.chip[data-been="been"]').click(); await tick(dom);
+  ok(d.querySelector('.note').textContent.includes('3 places'), 'been filter: ' + d.querySelector('.note').textContent);
 }
 
 // 16. adding a place writes its kind; a blank kind reads as eat + drink
@@ -406,6 +408,98 @@ function ok(cond, msg){ if(cond){ pass++; } else { fail++; console.log('FAIL:', 
 {
   const { d } = await app();
   ok(d.title === 'travel' && d.querySelector('h1').firstChild.textContent.trim() === 'travel', 'title is travel');
+}
+
+
+// 30. been: old y / - / n read as struck; struck sort after the rest; an edit keeps an old mark
+{
+  const { d, dom, backend } = await app();
+  d.querySelector('.city[data-city="New York, NY"]').click(); await tick(dom);
+  const its = [...d.querySelectorAll('.item')];
+  ok(its[0].textContent.includes("Salt Hank") && !its[0].classList.contains('been'), 'not-yet first: ' + its.map(e => e.textContent.trim().split('\n')[0]));
+  ok(its[1].classList.contains('been'), 'old y reads as been, struck');
+  its[1].click(); await tick(dom);
+  d.getElementById('editBtn').click(); await tick(dom);
+  ok(d.getElementById('f_rating').value === 'x', 'form shows been');
+  d.getElementById('f_notes').value = 'corner table';
+  d.getElementById('saveBtn').click(); await tick(dom);
+  ok(backend.table[0][3] === 'y', 'edit kept the old y: ' + backend.table[0][3]);
+  ok(!d.querySelector('.chip[data-rating]') && d.querySelectorAll('.chip[data-been]').length === 2, 'y / - / n chips gone');
+}
+
+// 31. local: the nine Bay Area counties file under local ▸ county, first; the rest of California stays West
+{
+  const rows = seed.concat([
+    { name: 'Arcangeli Grocery', city: 'Pescadero, CA' }, { name: 'Fort Ross', city: 'Jenner, CA', kind: 'see + do' },
+    { name: 'Bay Trail', city: 'Bay Area, CA', kind: 'see + do' }, { name: 'Localis', city: 'Sacramento, CA' },
+  ]);
+  const { d, w } = await app(rows);
+  const pl = w.__oot.placeOf;
+  ok(pl('Pescadero, CA').regions[0] === 'local' && pl('Pescadero, CA').sub === 'San Mateo County', 'Pescadero is local / San Mateo');
+  ok(pl('St. Helena, CA').sub === 'Napa County' && pl('Sacramento, CA').sub === 'California', 'Napa local, Sacramento West');
+  ok(pl('Bay Area, CA').sub === 'across the bay area', 'bay-wide row');
+  const regions = [...d.querySelectorAll('.region')].map(e => (e.firstElementChild || e).textContent);
+  ok(regions[0] === 'local', 'local comes first: ' + regions);
+}
+
+// 32. the list parses the way the notes were written
+{
+  const { w } = await app();
+  const text = ['somewhere nice', 'Lisbon, Portugal', 'Cervejaria Ramiro (seafood)', '  carabineiros', '\tprego', 'stay', 'Memmo Alfama',
+    'Pizzeria Bianco — Phoenix, AZ', '~~Bar Pitti~~ — New York, NY', 'Hotel Sacher #stay — Vienna, Austria',
+    'Golden Gate Park // bison paddock — San Francisco, CA'].join('\n');
+  const { entries, loose } = w.__oot.parseList(text);
+  const by = n => entries.find(e => e.name === n);
+  ok(by('Cervejaria Ramiro') && by('Cervejaria Ramiro').city === 'Lisbon, Portugal' && by('Cervejaria Ramiro').category === 'seafood', 'heading + category');
+  ok(by('Cervejaria Ramiro').todo.join('|') === 'carabineiros|prego', 'indented items: ' + by('Cervejaria Ramiro').todo);
+  ok(by('Memmo Alfama').kind === 'stay', 'kind line');
+  ok(by('Pizzeria Bianco').city === 'Phoenix, AZ' && by('Pizzeria Bianco').kind === 'eat + drink', 'one-line city');
+  ok(by('Bar Pitti').been && by('Bar Pitti').city === 'New York, NY', 'struck = been');
+  ok(by('Hotel Sacher').kind === 'stay' && by('Hotel Sacher').city === 'Vienna, Austria', '#tag');
+  ok(by('Golden Gate Park') && by('Golden Gate Park').notes === 'bison paddock' && by('Golden Gate Park').kind === 'see + do', 'note + guessed kind: ' + JSON.stringify(by('Golden Gate Park')));
+  ok(loose.length === 1 && loose[0].name === 'somewhere nice', 'no city = loose');
+}
+
+// 33. send: new rows land in their cities, existing rows get what is new, loose lines stay
+{
+  const { d, dom, w, backend } = await app();
+  d.getElementById('listBtn').click(); await tick(dom);
+  const ta = d.getElementById('listText');
+  ta.value = ['remember this one', 'New York, NY', "Salt Hank's", '  pickles', 'Bar Pitti', 'Russ & Daughters (deli)', '  bagel', '', 'Sedona, AZ', '~~Vino di Sedona~~',
+    'Enchantment Resort', 'Lisbon, Portugal', 'Cervejaria Ramiro'].join('\n');
+  ta.dispatchEvent(new dom.window.Event('input')); await tick(dom, 300);
+  ok(d.getElementById('listSend').textContent.includes('3 new') && d.getElementById('listSend').textContent.includes('1 updated'), 'plan: ' + d.getElementById('listSend').textContent);
+  ok(d.getElementById('listPlan').textContent.includes('new city'), 'plan flags a new city');
+  ok(d.getElementById('listBtn').textContent === 'list 7', 'chip counts entries: ' + d.getElementById('listBtn').textContent);
+  const n = backend.table.length;
+  d.getElementById('listSend').click(); await tick(dom, 100);
+  ok(backend.table.length === n + 3, 'three rows added: ' + (backend.table.length - n));
+  const salt = backend.table.find(r => r[0] === "Salt Hank's");
+  ok(salt[4] === 'french dip; pickles' || salt[4] === 'pickles', 'to order appended: ' + salt[4]);
+  const russ = backend.table.find(r => r[0] === 'Russ & Daughters');
+  ok(russ && russ[1] === 'deli' && russ[4] === 'bagel' && russ[2] === 'New York, NY', 'new row: ' + russ);
+  const ench = backend.table.find(r => r[0] === 'Enchantment Resort');
+  ok(ench && ench[11] === 'stay' && ench[8] !== '', 'guessed stay, city centre: ' + ench);
+  ok(backend.table.find(r => r[0] === 'Vino di Sedona')[3] === 'n', 'already been: left alone');
+  ok(backend.table.filter(r => r[0] === 'Bar Pitti').length === 1, 'nothing doubled');
+  ok(w.__oot.places.some(p => p.name === 'Cervejaria Ramiro' && p.city === 'Lisbon, Portugal'), 'local list knows the new rows');
+  await tick(dom, 1400);
+  ok(backend.listText === 'remember this one', 'only the loose line is left: ' + JSON.stringify(backend.listText));
+}
+
+
+// 34. the list read from OneDrive does not wipe what was typed while it was on its way
+{
+  const { d, dom, w, backend } = await app();
+  backend.listText = 'from the other device';
+  let release; backend.getList = () => new Promise(r => { release = () => r('from the other device'); });
+  d.getElementById('listBtn').click(); await tick(dom);
+  const ta = d.getElementById('listText');
+  ta.value = 'Katz\'s — New York, NY'; ta.dispatchEvent(new dom.window.Event('input'));
+  release(); await tick(dom, 50);
+  ok(ta.value.startsWith('Katz') && w.localStorage.getItem('oot.list').startsWith('Katz'), 'typed text kept: ' + ta.value);
+  await tick(dom, 1400);
+  ok(backend.listText.startsWith('Katz'), 'and sent up: ' + backend.listText);
 }
 
 console.log(`${pass} passed, ${fail} failed`);

@@ -7,12 +7,15 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>travel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..600&family=Newsreader:opsz,wght@6..72,400..500&display=swap" rel="stylesheet">
 <!--MSAL--><script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.30.0/lib/msal-browser.min.js"></script><!--/MSAL-->
 <style>
-  /* Same system as eat + drink (its "minimal" pass): one family, one accent,
-     hairlines only, no rounded corners. Blue = tappable, green/red = verdict,
-     everything else is type. The country / state / city index keeps its own
-     headings: one black rule per country, weight for contrast. */
+  /* Same system as eat + drink (its "minimal" pass): one accent, hairlines only, no rounded
+     corners. Blue = tappable, everything else is type. Type (2026.10.28-7): Inter for the
+     working text, Newsreader (a text serif) for the structure — the title, the regions, a
+     city's or a place's name. Contrast comes from the change of face and size, not from bold:
+     nothing on the page is heavier than 600, and headings are 400–500. */
   :root{
     color-scheme:light;
     --bg:#ffffff; --text:#111111; --muted:#999999; --muted2:#666666;
@@ -20,15 +23,16 @@
   }
   *{box-sizing:border-box;}
   html,body{background:var(--bg);}
-  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-       -webkit-font-smoothing:antialiased;font-size:15px;color:var(--text);}
+  body{margin:0;font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+       -webkit-font-smoothing:antialiased;font-size:15px;color:var(--text);font-feature-settings:"cv11";}
+  .serif,h1,.region,.cityhead h2,.sheet h2,.gate h2{font-family:"Newsreader",Georgia,serif;font-feature-settings:normal;}
   button,input,select,textarea{font-family:inherit;border-radius:0;}
 
   /* header */
   /* full window width, same sizes and gutters as eat + drink: no column, no zoom */
   header{position:sticky;top:env(safe-area-inset-top, 0px);background:var(--bg);padding:14px 16px 10px;
          z-index:10;border-bottom:1px solid var(--hair);}
-  h1{margin:0 0 10px;font-size:15px;font-weight:700;letter-spacing:.01em;color:var(--text);}
+  h1{margin:0 0 10px;font-size:22px;font-weight:500;line-height:1.1;color:var(--text);}
   .loglink{font-weight:400;font-size:13px;color:var(--accent);text-decoration:none;margin-left:10px;}
   .ver{position:absolute;top:12px;right:16px;font-size:10px;color:#bbb;letter-spacing:.02em;}
   .ver a{color:var(--accent);text-decoration:none;cursor:pointer;}
@@ -38,23 +42,23 @@
   .search:focus{outline:none;border-bottom-color:var(--text);}
   .clearx{position:absolute;top:50%;right:0;transform:translateY(-50%);background:none;border:none;color:#bbb;
           font-size:20px;line-height:1;cursor:pointer;padding:2px 6px;display:none;}
-  .row{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;align-items:center;}
+  .row{display:flex;gap:4px 6px;margin-top:8px;flex-wrap:wrap;align-items:center;}
   select.kind{background:#fff;border:none;color:var(--accent);padding:6px 2px;font-size:13px;-webkit-appearance:none;appearance:none;cursor:pointer;}
-  select.kind.on{color:var(--text);font-weight:700;}
-  .chip{background:none;border:none;color:var(--accent);padding:6px 8px;font-size:13px;cursor:pointer;user-select:none;}
-  .chip.active{color:var(--text);font-weight:700;}
+  select.kind.on{color:var(--text);font-weight:600;}
+  .chip{background:none;border:none;color:var(--accent);padding:6px 5px;font-size:13px;cursor:pointer;user-select:none;}
+  .chip.active{color:var(--text);font-weight:600;}
   .count{color:#aaa;font-size:12px;margin-top:4px;}
 
   /* list */
   main{padding:2px 16px 90px;}
   .note{color:#aaa;font-size:12px;padding:8px 0 6px;}
-  .region{font-size:15px;font-weight:700;color:var(--text);margin:0;padding:11px 0;border-top:1px solid var(--text);}
+  .region{font-size:21px;font-weight:400;line-height:1.2;color:var(--text);margin:0;padding:12px 0 8px;border-top:1px solid var(--text);}
   details.country > summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
   details.country > summary::-webkit-details-marker{display:none;}
   details.country > summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
   details.country[open] > summary{padding-bottom:4px;}
   details.country[open]{padding-bottom:8px;}
-  .rcount{font-size:13px;font-weight:400;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .rcount{font-family:"Inter",-apple-system,sans-serif;font-size:13px;font-weight:400;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;}
   /* the travel notes' folders: area label ▸ region (a note) ▸ state / country ▸ town */
   .area{font-size:12px;color:var(--muted);padding:22px 0 6px;letter-spacing:.02em;}
   .note + .area{padding-top:8px;}
@@ -62,16 +66,16 @@
                         padding:7px 0;font-size:15px;color:var(--text);}
   details.sub > summary::-webkit-details-marker{display:none;}
   details.sub > summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
-  details.sub[open] > summary{font-weight:700;}
+  details.sub[open] > summary{font-weight:500;}
   details.sub[open]{padding-bottom:6px;}
   details.sub .city{padding-left:14px;}
   .city{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:6px 0;cursor:pointer;}
   .city .cn{font-size:15px;font-weight:400;color:var(--accent);}
   .city .cc{font-size:12px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums;}
   .back{background:none;border:none;color:var(--accent);font-size:14px;cursor:pointer;padding:10px 0 2px;}
-  .cityhead h2{font-size:17px;font-weight:700;margin:6px 0 2px;}
+  .cityhead h2{font-size:26px;font-weight:400;line-height:1.15;margin:6px 0 4px;}
   .cityhead .sub{color:var(--muted);font-size:12px;margin-bottom:4px;}
-  .kindhead{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;font-weight:700;color:var(--muted2);
+  .kindhead{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;font-weight:500;color:var(--muted2);
             padding:18px 0 2px;border-bottom:1px solid var(--hair);}
   .kindhead span:last-child{font-weight:400;color:var(--muted);}
   .item{border-bottom:1px solid var(--hair);padding:11px 0;cursor:pointer;}
@@ -80,8 +84,9 @@
   .item-sub{font-size:12px;color:var(--muted);margin-top:2px;}
   .toorder{margin-top:5px;font-size:12px;color:var(--text);}
   .tolabel{color:var(--muted);}
-  .badge{font-weight:600;font-size:12px;padding:2px 0;flex-shrink:0;}
-  .badge.y{color:var(--good);} .badge.n{color:var(--bad);} .badge.d{color:#c0c0c0;}
+  /* been = struck through, the way a line is crossed off in Notes: the name keeps its colour,
+     a 1px line runs through it, nothing else changes */
+  .struck,.item.been .item-name,h2.been{text-decoration:line-through;text-decoration-thickness:1px;}
   .closedtag{color:var(--bad);font-size:11px;text-transform:uppercase;letter-spacing:.06em;border:1px solid var(--bad);
              border-radius:3px;padding:0 4px;margin-left:7px;white-space:nowrap;vertical-align:1px;}
   .item.isclosed .item-name, h2.closed{color:var(--bad);}
@@ -100,7 +105,7 @@
          padding:20px 19px calc(26px + env(safe-area-inset-bottom, 0px));z-index:31;transform:translateY(105%);visibility:hidden;
          transition:transform .2s ease,visibility 0s linear .2s;font-size:14px;}
   .sheet.open{transform:translateY(0);visibility:visible;transition:transform .2s ease;}
-  .sheet h2{margin:0 26px 5px 0;font-size:17px;font-weight:700;line-height:1.25;}
+  .sheet h2{margin:0 26px 5px 0;font-size:24px;font-weight:400;line-height:1.2;}
   .sheet .sub{color:var(--muted2);font-size:14px;margin-bottom:12px;}
   .closedline{color:var(--bad);font-size:13px;margin:2px 0 10px;}
   .close-x{position:absolute;top:14px;right:14px;background:none;border:none;color:var(--muted2);font-size:22px;cursor:pointer;}
@@ -112,12 +117,9 @@
   .field .hint{font-size:11px;color:var(--muted2);margin-top:4px;}
   .val{white-space:pre-wrap;}
   .maplink{color:var(--accent);text-decoration:none;}
-  .rateRow{display:flex;gap:6px;margin:2px 0 12px;}
-  .rateBtn{flex:1;padding:11px 0;text-align:center;border:1px solid var(--hair);background:none;color:#bbb;font-size:14px;cursor:pointer;}
-  .rateBtn.on{font-weight:700;}
-  .rateBtn.on.y{border-color:var(--good);color:var(--good);}
-  .rateBtn.on.d{border-color:#999;color:#555;}
-  .rateBtn.on.n{border-color:var(--bad);color:var(--bad);}
+  .beenBtn{display:block;width:100%;padding:11px 0;margin:2px 0 14px;text-align:center;border:1px solid var(--hair);background:none;
+           color:#aaa;font-size:14px;cursor:pointer;}
+  .beenBtn.on{border-color:var(--text);color:var(--text);}
   /* To Order: the same box as eat + drink — one row per item, "ate it" moves it to ordered */
   .wantrow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--hair);}
   .wantrow:last-of-type{border-bottom:none;}
@@ -135,13 +137,26 @@
   .closedtoggle{background:none;border:none;color:var(--muted2);font-size:12px;text-decoration:underline;cursor:pointer;padding:0;margin-top:14px;}
 
   .gate{position:fixed;inset:0;background:var(--bg);z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;}
-  .gate h2{font-size:17px;margin:0 0 8px;}
+  .gate h2{font-size:24px;font-weight:400;margin:0 0 8px;}
   .gate p{color:var(--muted2);font-size:14px;max-width:320px;margin:0 0 20px;}
   .spinner{width:28px;height:28px;border:2px solid var(--hair);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px;}
   @keyframes spin{to{transform:rotate(360deg);}}
   .errbox{border:1px solid var(--bad);color:var(--bad);padding:10px;font-size:13px;margin-top:12px;max-width:340px;word-break:break-word;}
   .banner{background:#fafafa;border-bottom:1px solid var(--hair);font-size:12px;color:var(--muted2);padding:6px 14px;text-align:center;}
   ::placeholder{color:var(--muted);}
+  /* the list */
+  .linkbtn{background:none;border:none;padding:0;color:var(--accent);font-size:inherit;cursor:pointer;}
+  .listhelp{font-size:12px;color:var(--muted2);line-height:1.6;margin:-4px 0 12px;}
+  .listhelp b{font-weight:500;color:var(--text);}
+  .listtext{width:100%;min-height:200px;padding:10px 11px;border:1px solid var(--line);background:#fff;color:var(--text);
+            font-size:14px;line-height:1.5;resize:vertical;tab-size:2;}
+  .liststatus{font-size:11px;color:var(--muted);min-height:14px;margin:4px 0 6px;}
+  .plancity{font-size:13px;font-weight:500;padding:12px 0 4px;border-bottom:1px solid var(--hair);}
+  .planwhere{font-weight:400;color:var(--muted);}
+  .planrow{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:6px 0;border-bottom:1px solid var(--hair);}
+  .planrow .planwhat{color:var(--muted2);font-size:12px;text-align:right;}
+  .planrow.same{color:var(--muted);}
+  .btn:disabled{opacity:.4;cursor:default;}
 </style>
 </head>
 <body>
@@ -167,11 +182,11 @@
       <option value="golf">golf</option>
       <option value="ski">ski</option>
     </select>
-    <div class="chip" data-rating="y">y</div>
-    <div class="chip" data-rating="-">-</div>
-    <div class="chip" data-rating="n">n</div>
+    <div class="chip" data-been="been"><span class="struck">been</span></div>
+    <div class="chip" data-been="not">not yet</div>
     <div class="chip" id="nearBtn">nearest</div>
     <div class="chip" id="randBtn">random</div>
+    <div class="chip" id="listBtn">list</div>
   </div>
 </header>
 
@@ -195,7 +210,7 @@
     <option value="eat + drink">eat + drink</option><option value="stay">stay</option><option value="see + do">see + do</option>
     <option value="shop">shop</option><option value="golf">golf</option><option value="ski">ski</option></select></div>
   <div class="field"><label>Category</label><input id="f_category" list="catList" autocomplete="off" autocapitalize="words"></div>
-  <div class="field"><label>Rating</label><select id="f_rating"><option value=""></option><option value="-">-</option><option value="y">y (good)</option><option value="n">n (no)</option></select></div>
+  <div class="field"><label>Been</label><select id="f_rating"><option value="">not yet</option><option value="x">been — struck through</option></select></div>
   <div class="field"><label id="f_toOrderLabel">To Order</label><input id="f_toOrder" autocomplete="off" placeholder="separate items with ;"></div>
   <div class="field"><label id="f_orderedLabel">Ordered</label><textarea id="f_ordered" placeholder="separate items with ;"></textarea></div>
   <div class="field"><label>Notes</label><textarea id="f_notes"></textarea></div>
@@ -204,18 +219,39 @@
   <div class="btnrow"><button class="btn primary" id="saveBtn">save</button></div>
 </div>
 
+<div class="sheet" id="listSheet">
+  <button class="close-x" data-close>&times;</button>
+  <h2>list</h2>
+  <div class="sub">write places down as they come — send puts each one in its city. <button class="linkbtn" id="listHelpBtn" type="button">how</button></div>
+  <div class="listhelp" id="listHelp" hidden>
+    <div><b>Lisbon, Portugal</b> — a city on its own line starts that city</div>
+    <div><b>stay</b> — a kind on its own line (eat, stay, see + do, shop, golf, ski) sets the kind below it</div>
+    <div><b>Cervejaria Ramiro (seafood)</b> — a place; (…) is its category</div>
+    <div><b>&nbsp;&nbsp;&nbsp;&nbsp;carabineiros</b> — indented, or after a dash: to order / to do</div>
+    <div><b>Pizzeria Bianco — Phoenix, AZ</b> — one place, one city, no heading</div>
+    <div><b>Hotel Sacher #stay</b> — #kind on the line</div>
+    <div><b>~~Joe Beef~~</b> — struck through = been</div>
+    <div><b>Bar X // ask for the patio</b> — // starts a note</div>
+  </div>
+  <textarea id="listText" class="listtext" autocapitalize="none" spellcheck="false" placeholder="Lisbon, Portugal&#10;Cervejaria Ramiro (seafood)&#10;  carabineiros&#10;Pizzeria Bianco — Phoenix, AZ"></textarea>
+  <div class="liststatus" id="listStatus"></div>
+  <div id="listPlan"></div>
+  <div class="btnrow"><button class="btn primary" id="listSend" type="button">send</button></div>
+</div>
+
 <datalist id="cityList"></datalist>
 <datalist id="catList"></datalist>
 
 <script>
 /* ====== CONFIG ====== */
-const APP_VERSION = "2026.10.28-6";
+const APP_VERSION = "2026.10.28-7";
 const MSAL_CLIENT_ID = "7175d0f0-c775-4157-87de-0d85914a1350";
 const REDIRECT_URI = "https://nameisredacted.github.io/out-of-town/";
 const GRAPH_SCOPES = ["Files.ReadWrite", "User.Read"];
 const FILE_PATH = "the list/Food + Drink/Claude/Out of Town.xlsx";
 const SHEET = "Places";
 const TABLE = "PlacesTable";
+const LIST_PATH = "the list/Food + Drink/Claude/travel list.txt";   // the running list, plain text
 /* ===================== */
 
 /* Column order of PlacesTable. Every record written lists all of these.
@@ -320,7 +356,28 @@ function graphBackend(){
       const d = await graph('POST', rowsPath, { values: [objToRow(rec)] });
       return d && d.index !== undefined ? d.index : null;
     },
+    /* several rows in one POST; Graph answers with the first new row's index */
+    async addMany(recs){
+      const d = await graph('POST', rowsPath, { values: recs.map(objToRow) });
+      return d && d.index !== undefined ? d.index : null;
+    },
     async update(index, rec){ await graph('PATCH', `${rowsPath}/itemAt(index=${index})`, { values: [objToRow(rec)] }); },
+    /* the list: a plain text file beside the workbook; missing = empty */
+    async getList(){
+      const res = await fetch(`https://graph.microsoft.com/v1.0/me/drive/root:/${enc(LIST_PATH)}?select=id,@microsoft.graph.downloadUrl`,
+        { headers: { 'Authorization': 'Bearer ' + await token() } });
+      if(res.status === 404) return '';
+      if(!res.ok) throw new Error(`OneDrive list read failed: ${res.status}`);
+      const url = (await res.json())['@microsoft.graph.downloadUrl'];
+      const txt = await fetch(url, { cache: 'no-store' });
+      if(!txt.ok) throw new Error(`OneDrive list read failed: ${txt.status}`);
+      return await txt.text();
+    },
+    async putList(text){
+      const res = await fetch(`https://graph.microsoft.com/v1.0/me/drive/root:/${enc(LIST_PATH)}:/content`,
+        { method: 'PUT', headers: { 'Authorization': 'Bearer ' + await token(), 'Content-Type': 'text/plain; charset=utf-8' }, body: text });
+      if(!res.ok) throw new Error(`OneDrive list save failed: ${res.status}`);
+    },
     async remove(index){ await graph('DELETE', `${rowsPath}/itemAt(index=${index})`); }
   };
 }
@@ -331,6 +388,9 @@ function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&
 function norm(s){ return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
 const key = v => norm(v.name) + '|' + norm(v.city);
 const isClosed = v => !!(v.closed || '').trim();
+/* Been: any value in the Rating column. New marks write "x"; the y / - / n left from before
+   (2026.10.28-7) read as been and are kept as they are until unstruck. */
+const isBeen = v => !!(v.rating || '').trim();
 const items = s => String(s || '').split(/\s*;\s*/).map(x => x.trim()).filter(Boolean);
 
 const STATES = {AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',DE:'Delaware',DC:'District of Columbia',FL:'Florida',GA:'Georgia',HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming',PR:'Puerto Rico',VI:'US Virgin Islands',GU:'Guam',AS:'American Samoa',MP:'Northern Mariana Islands',UM:'US Minor Outlying Islands'};
@@ -349,6 +409,7 @@ const STATES = {AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'Californ
    lands in "elsewhere", never disappears. */
 const LATAM = 'Mexico / Latin / South America';
 const AREAS = [
+  ['', ['local']],
   ['united states', ['West', 'Southwest', 'Midwest', 'South', 'East', 'Alaska', 'Territories', 'National']],
   ['international', ['North America', LATAM, 'Caribbean', 'Europe', 'Africa', 'Asia', 'Oceania', 'Antarctica', 'Global']],
   ['', ['elsewhere']],
@@ -399,6 +460,24 @@ const TERRITORIES = {
 };
 const TERRITORY_OF = {};
 Object.entries(TERRITORIES).forEach(([name, list]) => list.split('|').forEach(a => { TERRITORY_OF[norm(a)] = name; }));
+/* local (2026.10.28-7): the travel notes' own "local" folder. A California town inside the nine
+   Bay Area counties (the hometown line) is filed under local ▸ its county instead of West ▸
+   California; "Bay Area, CA" holds what runs across the whole bay (the Bay Trail, the Ridge
+   Trail). A Bay Area town missing from this list falls under California — add it here. */
+const BAY_TOWNS = {
+  'Alameda': 'Alameda|Albany|Berkeley|Dublin|Emeryville|Fremont|Hayward|Livermore|Newark|Oakland|Piedmont|Pleasanton|San Leandro|Union City|Castro Valley|San Lorenzo|Sunol|Ashland|Cherryland|Fairview|Alameda County',
+  'Contra Costa': 'Antioch|Brentwood|Clayton|Concord|Danville|El Cerrito|Hercules|Lafayette|Martinez|Moraga|Oakley|Orinda|Pinole|Pittsburg|Pleasant Hill|Richmond|San Pablo|San Ramon|Walnut Creek|Alamo|Bay Point|Bethel Island|Byron|Crockett|Diablo|Discovery Bay|El Sobrante|Kensington|Knightsen|Port Costa|Rodeo|Blackhawk|Canyon|Point Richmond|Mount Diablo|Contra Costa County',
+  'Marin': 'Belvedere|Corte Madera|Fairfax|Larkspur|Mill Valley|Novato|Ross|San Anselmo|San Rafael|Sausalito|Tiburon|Bolinas|Dillon Beach|Forest Knolls|Inverness|Kentfield|Lagunitas|Marin City|Marshall|Muir Beach|Nicasio|Olema|Point Reyes|Point Reyes Station|San Geronimo|Stinson Beach|Tomales|Woodacre|Greenbrae|Strawberry|Tamalpais Valley|Muir Woods|Angel Island|Tomales Bay|Marin County|Marin Headlands|Point Reyes National Seashore',
+  'Napa': 'American Canyon|Calistoga|Napa|St. Helena|Saint Helena|Yountville|Angwin|Deer Park|Pope Valley|Rutherford|Oakville|Lake Berryessa|Napa Valley|Napa County',
+  'San Francisco': 'San Francisco|Treasure Island',
+  'San Mateo': 'Atherton|Belmont|Brisbane|Burlingame|Colma|Daly City|East Palo Alto|Foster City|Half Moon Bay|Hillsborough|Menlo Park|Millbrae|Pacifica|Portola Valley|Redwood City|San Bruno|San Carlos|San Mateo|South San Francisco|Woodside|El Granada|Montara|Moss Beach|Pescadero|La Honda|Loma Mar|San Gregorio|Princeton|Princeton-by-the-Sea|Emerald Hills|Ladera|Broadmoor|Kings Mountain|San Mateo County',
+  'Santa Clara': 'Campbell|Cupertino|Gilroy|Los Altos|Los Altos Hills|Los Gatos|Milpitas|Monte Sereno|Morgan Hill|Mountain View|Palo Alto|San Jose|Santa Clara|Saratoga|Sunnyvale|Stanford|Alviso|San Martin|Mount Hamilton|Coyote|Santa Clara County',
+  'Solano': 'Benicia|Dixon|Fairfield|Rio Vista|Suisun City|Vacaville|Vallejo|Suisun|Suisun Marsh|Mare Island|Solano County',
+  'Sonoma': 'Cloverdale|Cotati|Healdsburg|Petaluma|Rohnert Park|Santa Rosa|Sebastopol|Sonoma|Windsor|Annapolis|Bodega|Bodega Bay|Boyes Hot Springs|Cazadero|Duncans Mills|Forestville|Geyserville|Glen Ellen|Graton|Guerneville|Jenner|Kenwood|Monte Rio|Occidental|Penngrove|Sea Ranch|The Sea Ranch|Timber Cove|Valley Ford|Fort Ross|Asti|Jimtown|Freestone|Camp Meeker|Rio Nido|Agua Caliente|El Verano|Fulton|Gualala Point|Stewarts Point|Two Rock|Bloomfield|Sonoma Valley|Russian River|Dry Creek Valley|Alexander Valley|Duncan Mills|Knights Valley|Sonoma County|Sonoma Coast',
+};
+const BAY_COUNTY = {};
+Object.entries(BAY_TOWNS).forEach(([county, list]) => list.split('|').forEach(t => { BAY_COUNTY[norm(t)] = county + ' County'; }));
+BAY_COUNTY[norm('Bay Area')] = 'across the bay area';
 /* Places that span several states or countries were named after their route or note
    ("Chicago to Santa Monica, United States", "Canterbury to Rome, Europe", "At sea, Cruise"). */
 const ACROSS_STATES = 'across states', ACROSS = 'across countries', NO_PLACE = 'no country or state given';
@@ -412,6 +491,7 @@ function placeOf(city){
   if(parts.length < 2) return { regions: ['elsewhere'], sub: NO_PLACE };
   const last = parts[parts.length - 1], st = last.toUpperCase();
   if(TERRITORY_OF[norm(last)]) return { regions: ['Territories'], sub: TERRITORY_OF[norm(last)] };
+  if(st === 'CA' && parts.length === 2 && BAY_COUNTY[norm(parts[0])]) return { regions: ['local'], sub: BAY_COUNTY[norm(parts[0])] };
   if(STATES[st]) return { regions: [STATE_REGION[st] || 'National'], sub: STATES[st] };
   if(MULTI[last]) return { regions: [MULTI[last][0]], sub: MULTI[last][1] };
   return { regions: COUNTRY_REGION[norm(last)] || ['elsewhere'], sub: last };
@@ -429,7 +509,7 @@ function whereLine(city){
 function canonCity(raw){
   let c = String(raw || '').replace(/\s+/g, ' ').replace(/\s*,\s*/g, ', ').trim().replace(/,$/, '');
   if(!c) return '';
-  const hit = allCities().find(x => norm(x) === norm(c));
+  const hit = cached().byNorm.get(norm(c));
   if(hit) return hit;
   if(c === c.toLowerCase()) c = c.replace(/\b([a-z])/g, m => m.toUpperCase());
   return c.replace(/, ([A-Za-z]{2})$/, (m, st) => STATES[st.toUpperCase()] ? ', ' + st.toUpperCase() : m);
@@ -447,20 +527,33 @@ function fmtMi(m){ return m < 10 ? m.toFixed(1) + ' mi' : Math.round(m).toLocale
 let backend = null;
 let places = [];
 let lastLoad = 0, lastWrite = 0;
-const state = { view: 'index', city: '', query: '', near: null, kind: '', ratings: new Set() };
+const state = { view: 'index', city: '', query: '', near: null, kind: '', been: '' };   // been: '' | 'been' | 'not'
 let editing = null;        // null = adding
 
-/* the kind and rating filters apply everywhere: index counts, city pages, search, nearest */
+/* the kind and been / not yet filters apply everywhere: index counts, city pages, search, nearest */
 function shown(p){
   if(state.kind && kindOf(p) !== state.kind) return false;
-  if(state.ratings.size && !state.ratings.has((p.rating || '').trim())) return false;
+  if(state.been === 'been' && !isBeen(p)) return false;
+  if(state.been === 'not' && isBeen(p)) return false;
   return true;
 }
 const visible = () => places.filter(shown);
 
-function allCities(){
-  return [...new Set(places.map(p => p.city).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+/* the city list and the name + city index are rebuilt only when the rows change
+   (the list's plan asks for them once per line, over 16,000 rows) */
+let cache = { arr: null, len: -1, sig: '' };
+function cached(){
+  const sig = places.length ? places[places.length - 1].name + '|' + places[places.length - 1].city : '';
+  if(cache.arr !== places || cache.len !== places.length || cache.sig !== sig){
+    const cities = [...new Set(places.map(p => p.city).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+    const byNorm = new Map(cities.map(c => [norm(c), c]));
+    const byKey = new Map(); places.forEach(p => { const k = key(p); byKey.set(k, byKey.has(k) ? null : p); });
+    cache = { arr: places, len: places.length, sig, cities, byNorm, byKey };
+  }
+  return cache;
 }
+function allCities(){ return cached().cities.slice(); }
+function dropCache(){ cache = { arr: null, len: -1, sig: '' }; }
 function cityCentroids(){
   const m = new Map();
   places.forEach(p => {
@@ -473,12 +566,10 @@ function cityCentroids(){
   return m;
 }
 const SEARCH_CAP = 150;
-const RANK = { y: 0, '': 1, '-': 2, n: 3 };
+/* open places first, struck-through (been) after them, closed last; by name within each */
 function sortPlaces(list){
   return list.slice().sort((a, b) =>
-    (isClosed(a) - isClosed(b)) ||
-    ((RANK[a.rating] ?? 1) - (RANK[b.rating] ?? 1)) ||
-    a.name.localeCompare(b.name));
+    (isClosed(a) - isClosed(b)) || (isBeen(a) - isBeen(b)) || a.name.localeCompare(b.name));
 }
 
 async function loadAll(){
@@ -487,6 +578,7 @@ async function loadAll(){
   refreshLists();
 }
 function refreshLists(){
+  dropCache();
   $('cityList').innerHTML = allCities().map(c => `<option value="${esc(c)}">`).join('');
   const cats = new Map();
   places.forEach(p => { if(p.category) cats.set(p.category, (cats.get(p.category) || 0) + 1); });
@@ -495,18 +587,13 @@ function refreshLists(){
 }
 
 /* ---------- rendering ---------- */
-function badge(r){
-  r = (r || '').trim();
-  if(!r) return '';
-  return `<div class="badge ${r === 'y' ? 'y' : r === 'n' ? 'n' : 'd'}">${esc(r)}</div>`;
-}
 function closedTag(v){ return isClosed(v) ? '<span class="closedtag">closed</span>' : ''; }
 
 function placeItem(v, showCity){
   const sub = [v.category, showCity ? v.city : '', !state.kind && showCity && kindOf(v) !== 'eat + drink' ? kindOf(v) : ''].filter(Boolean).join(' · ');
   const todo = items(v.toOrder);
-  return `<div class="item ${isClosed(v) ? 'isclosed' : ''}" data-key="${esc(key(v))}">
-    <div class="item-top"><div class="item-name">${esc(v.name)}${closedTag(v)}</div>${badge(v.rating)}</div>
+  return `<div class="item${isClosed(v) ? ' isclosed' : ''}${isBeen(v) ? ' been' : ''}" data-key="${esc(key(v))}">
+    <div class="item-top"><div class="item-name">${esc(v.name)}${closedTag(v)}</div></div>
     ${sub ? `<div class="item-sub">${esc(sub)}</div>` : ''}
     ${todo.length ? `<div class="toorder"><span class="tolabel">${words(v).todo}:</span> ${esc(todo.join(', '))}</div>` : ''}
   </div>`;
@@ -528,7 +615,7 @@ function render(){
   const sc = randomScope();
   $('randBtn').textContent = sc ? 'random in ' + sc.split('/').pop() : 'random';
   $('kindSel').classList.toggle('on', !!state.kind);
-  document.querySelectorAll('.chip[data-rating]').forEach(c => c.classList.toggle('active', state.ratings.has(c.dataset.rating)));
+  document.querySelectorAll('.chip[data-been]').forEach(c => c.classList.toggle('active', state.been === c.dataset.been));
   const q = norm(state.query);
   const pool = visible();
   const counts = countByCity(pool);
@@ -584,7 +671,7 @@ function render(){
     });
   });
   const total = list => list.reduce((a, c) => a + counts.get(c), 0);
-  const across = k => k === ACROSS || k === ACROSS_STATES || k === NO_PLACE;
+  const across = k => k === ACROSS || k === ACROSS_STATES || k === NO_PLACE || k === 'across the bay area';
   const towns = list => list.map(c => cityRow(c, counts.get(c), null, placeOf(c).sub !== NO_PLACE)).join('');
   const regionHtml = r => {
     const subs = tree.get(r);
@@ -643,9 +730,8 @@ $('q').addEventListener('keydown', e => {
 });
 $('clearQ').addEventListener('click', () => { $('q').value = ''; state.query = ''; render(); $('q').focus(); });
 $('kindSel').addEventListener('change', () => { state.kind = $('kindSel').value; render(); });
-document.querySelectorAll('.chip[data-rating]').forEach(c => c.addEventListener('click', () => {
-  const r = c.dataset.rating;
-  state.ratings.has(r) ? state.ratings.delete(r) : state.ratings.add(r);
+document.querySelectorAll('.chip[data-been]').forEach(c => c.addEventListener('click', () => {
+  state.been = state.been === c.dataset.been ? '' : c.dataset.been;
   render();
 }));
 $('fab').addEventListener('click', () => openForm(null, state.view === 'city' && !state.query ? state.city : ''));
@@ -653,7 +739,7 @@ $('fab').addEventListener('click', () => openForm(null, state.view === 'city' &&
 /* ---------- random: a random location (a city, never a single place) ----------
    Scope is the dropdown most recently opened that is still open and showing (a country inside
    a closed region does not count), so opening Europe ▸ Italy picks only Italian towns; with
-   nothing open it picks from everywhere. The kind and y / - / n filters apply, every city counts
+   nothing open it picks from everywhere. The kind and been / not yet filters apply, every city counts
    once however many places it has, and the same city never comes up twice in a row. */
 function inScope(city, id){
   const [r, sub] = id.split('/'), p = placeOf(city);
@@ -714,7 +800,7 @@ function mapsUrl(v){
 }
 
 function openDetail(v){
-  const r = (v.rating || '').trim();
+  const been = isBeen(v);
   const shut = isClosed(v);
   const w = words(v);
   const todo = items(v.toOrder), done = items(v.ordered);
@@ -729,15 +815,10 @@ function openDetail(v){
       ${shut ? '' : `<div class="wantadd"><input id="orderedAdd" placeholder="${w.doneAdd}" autocomplete="off"><button id="orderedAddBtn" type="button">add</button></div>`}
     </div>` : '';
   $('detailBody').innerHTML = `
-    <h2 class="${shut ? 'closed' : ''}">${esc(v.name)}${closedTag(v)}</h2>
+    <h2 class="${shut ? 'closed' : ''}${been ? ' been' : ''}">${esc(v.name)}${closedTag(v)}</h2>
     <div class="sub">${esc([v.category, v.city, kindOf(v) !== 'eat + drink' ? kindOf(v) : ''].filter(Boolean).join(' · '))}</div>
     ${shut ? `<div class="closedline">${esc(v.closed)} — kept as a record and cannot be edited</div>` : ''}
-    <div class="field"><label>Rating</label>
-      ${shut ? `<div>${esc(r || '—')}</div>` : `<div class="rateRow">
-        <div class="rateBtn y ${r === 'y' ? 'on' : ''}" data-r="y">y</div>
-        <div class="rateBtn d ${r === '-' ? 'on' : ''}" data-r="-">-</div>
-        <div class="rateBtn n ${r === 'n' ? 'on' : ''}" data-r="n">n</div></div>`}
-    </div>
+    ${shut ? '' : `<button class="beenBtn${been ? ' on' : ''}" id="beenBtn" type="button"><span class="struck">been</span>${been ? '' : ' — not yet'}</button>`}
     ${todoHtml}
     ${doneHtml}
     ${v.notes ? `<div class="field"><label>Notes</label><div class="val">${esc(v.notes)}</div></div>` : ''}
@@ -748,7 +829,7 @@ function openDetail(v){
   if($('editBtn')) $('editBtn').onclick = () => openForm(v);
   if($('deleteBtn')) $('deleteBtn').onclick = () => removePlace(v);
   $('closedToggle').onclick = () => toggleClosed(v);
-  document.querySelectorAll('#detailBody .rateBtn').forEach(b => b.onclick = () => setRating(v, b.dataset.r));
+  if($('beenBtn')) $('beenBtn').onclick = () => toggleBeen(v);
   document.querySelectorAll('#detailBody .ate').forEach(b => b.onclick = () => markDone(v, +b.dataset.i));
   const wire = (inp, btn, fn) => { if(!$(btn)) return; $(btn).onclick = () => fn(v); $(inp).addEventListener('keydown', e => { if(e.key === 'Enter') fn(v); }); };
   wire('toOrderAdd', 'toOrderAddBtn', addToOrder);
@@ -790,7 +871,7 @@ async function change(v, fields, refocus){
   }catch(e){ report(e); }
 }
 
-function setRating(v, r){ return change(v, { rating: (v.rating || '').trim() === r ? '' : r }); }
+function toggleBeen(v){ return change(v, { rating: isBeen(v) ? '' : 'x' }); }
 
 function addToOrder(v){
   const item = $('toOrderAdd').value.trim();
@@ -844,8 +925,9 @@ function openForm(v, city){
   editing = v || null;
   $('formTitle').textContent = v ? 'edit place' : 'add a place';
   const src = v || { city: city || '', kind: state.kind || 'eat + drink' };
-  ['name','city','category','rating','toOrder','ordered','notes','address','closed']
+  ['name','city','category','toOrder','ordered','notes','address','closed']
     .forEach(c => { $('f_' + c).value = src[c] || ''; });
+  $('f_rating').value = isBeen(src) ? 'x' : '';
   $('f_kind').value = kindOf(src);
   syncFormWords();
   openSheet('formSheet');
@@ -883,6 +965,7 @@ $('saveBtn').addEventListener('click', async () => {
   const rec = {};
   ['name','category','rating','toOrder','ordered','notes','address','closed','kind'].forEach(c => { rec[c] = $('f_' + c).value.trim(); });
   rec.city = canonCity($('f_city').value);
+  rec.rating = rec.rating ? (v && isBeen(v) ? v.rating : 'x') : '';     // an old y / - / n stays as it was while struck
   if(!rec.name){ alert('Enter a name.'); return; }
   if(!rec.city){ alert('Enter a city.'); return; }
   const twin = places.find(p => key(p) === key(rec) && p !== v);
@@ -916,12 +999,272 @@ $('saveBtn').addEventListener('click', async () => {
   finally{ $('saveBtn').disabled = false; }
 });
 
+/* ---------- the list: write places down as they come, send them all at once (2026.10.28-7) ----------
+   One running text, written the way the travel notes were:
+
+     Lisbon, Portugal                 a line that is a city starts that city
+     stay                             a line that is just a kind (eat, stay, see + do, shop, golf, ski)
+                                      sets the kind for the lines under it, until the next city
+     Taberna da Rua das Flores        a place in that city
+       prego                          indented (tab, two spaces, "-" or "•"): to order / to do
+     Cervejaria Ramiro (seafood)      "(…)" at the end = category
+     Hotel Sacher #stay               "#kind" on the line sets its kind
+     Pizzeria Bianco — Phoenix, AZ    " — city" or " @ city" puts one place in a city, no heading needed
+     ~~Joe Beef~~ — Montreal, Canada  struck through, as in Notes = been
+     Bar X // ask for the patio       " // …" = a note
+
+   Nothing is written until send. Send adds every place it can place: a name + city already on
+   the list gets the new to-do items (and the been mark, category or note it lacks); anything
+   else is a new row, in the right city, region and kind. Lines it cannot place (no city) stay
+   in the list for next time. The text is kept in OneDrive beside the workbook (LIST_PATH), so
+   the phone and the laptop share one list; this browser keeps a copy for when it is offline. */
+const KIND_WORDS = {
+  'eat + drink': 'eat|drink|eat + drink|eat and drink|food|restaurants|restaurant|bars|bar|cafes|coffee|to eat|eats',
+  stay: 'stay|hotels|hotel|lodging|sleep|where to stay',
+  'see + do': 'see|do|see + do|see and do|to do|things to do|sights|activities|hikes|hiking|museums|parks',
+  shop: 'shop|shopping|shops|stores',
+  golf: 'golf|to play|courses|golf courses',
+  ski: 'ski|skiing|ski areas|resorts to ski',
+};
+const KIND_OF_WORD = {};
+Object.entries(KIND_WORDS).forEach(([k, l]) => l.split('|').forEach(w => { KIND_OF_WORD[norm(w)] = k; }));
+const TAG_KIND = { eat: 'eat + drink', drink: 'eat + drink', food: 'eat + drink', stay: 'stay', hotel: 'stay', see: 'see + do', do: 'see + do', shop: 'shop', golf: 'golf', ski: 'ski' };
+/* a kind guessed from the words in the name and category when the list does not say */
+const GUESS = [
+  ['golf', /\b(golf|links|country club|par 3)\b/i],
+  ['ski', /\b(ski|snowbowl|mountain resort)\b/i],
+  ['stay', /\b(hotel|inn|lodge|motel|resort|hostel|b&b|bed and breakfast|ryokan|guesthouse|guest house|cabins?|campground|glamping|autocamp|suites)\b/i],
+  ['shop', /\b(shop|store|boutique|books|bookstore|market hall|mercantile|antiques?|gallery shop|outfitters)\b/i],
+  ['see + do', /\b(museum|park|trail|beach|falls|lake|bridge|garden|gardens|monument|preserve|reserve|refuge|cathedral|church|castle|tower|zoo|aquarium|theat(er|re)|stadium|island|canyon|forest|hot springs|lighthouse|historic|mission|tour|wildlife|overlook|peak|mount|hike)\b/i],
+];
+function guessKind(name, cat){
+  for(const [k, re] of GUESS) if(re.test(name + ' ' + (cat || ''))) return k;
+  return 'eat + drink';
+}
+/* a line that names a city: one already on the list, or "Town, ST" / "Town, Country" the index can file */
+function asCity(line){
+  if(!line.includes(',') || /[—–@#()]|~~|\/\//.test(line)) return '';
+  const c = canonCity(line);
+  if(cached().byNorm.get(norm(c)) === c) return c;
+  const parts = c.split(',').map(x => x.trim());
+  if(parts.length !== 2 || !parts[0] || parts[0].split(' ').length > 5) return '';
+  return placeOf(c).regions[0] === 'elsewhere' ? '' : c;
+}
+const INDENT = /^(\t|\s{2,}|\s*[-•*–]\s+)/;
+/* after a dash, "Town, Somewhere" is taken as a city even when the index does not know the
+   country yet (it then files under elsewhere): two short parts, no sentence */
+function looksLikeCity(t){
+  const parts = String(t).split(',').map(x => x.trim());
+  return parts.length === 2 && parts.every(Boolean) && parts[0].split(' ').length <= 5 && parts[1].split(' ').length <= 4 && !/[.!?/]$/.test(t.trim());
+}
+function parseList(text){
+  const out = [], loose = [];
+  let city = '', kind = '', last = null;
+  String(text || '').split(/\r?\n/).forEach((raw, n) => {
+    if(!raw.trim()){ return; }
+    if(INDENT.test(raw) && last){
+      const item = raw.replace(INDENT, '').replace(/^[-•*–]\s*/, '').trim();
+      if(item) last.todo.push(item);
+      return;
+    }
+    let line = raw.trim().replace(/^[-•*–]\s+/, '');
+    const c = asCity(line);
+    if(c){ city = c; kind = ''; last = null; return; }
+    if(KIND_OF_WORD[norm(line.replace(/:$/, ''))] && !line.includes(' — ')){ kind = KIND_OF_WORD[norm(line.replace(/:$/, ''))]; last = null; return; }
+    const e = { line: n, raw, name: '', city, kind: '', tagKind: '', category: '', notes: '', been: false, todo: [] };
+    let m, own = false;
+    if((m = line.match(/\s(?:—|–|@)\s*([^—–@]+)$/))){
+      const at = asCity(m[1].trim()) || (looksLikeCity(m[1]) ? canonCity(m[1].trim()) : '');
+      if(at){ e.city = at; own = at !== city; line = line.slice(0, m.index).trim(); }
+    }
+    if((m = line.match(/\s\/\/\s*(.+)$/))){ e.notes = m[1].trim(); line = line.slice(0, m.index).trim(); }
+    line = line.replace(/\s#([a-z+]+)\b/gi, (all, t) => { const k = TAG_KIND[t.toLowerCase()] || KIND_OF_WORD[norm(t)]; if(k){ e.tagKind = k; return ''; } return all; }).trim();
+    if((m = line.match(/^~~(.+?)~~/))){ e.been = true; line = (m[1] + line.slice(m[0].length)).trim(); }
+    if((m = line.match(/\s*\(([^()]+)\)$/))){ e.category = m[1].trim(); line = line.slice(0, m.index).trim(); }
+    e.name = line.replace(/^~~|~~$/g, '').trim();
+    if(!e.name){ return; }
+    e.kind = e.tagKind || (own ? '' : kind) || guessKind(e.name, e.category);   // a one-line place in another city does not take the heading's kind
+    last = e;
+    (e.city ? out : loose).push(e);
+  });
+  /* the same place twice in the list is one entry */
+  const merged = new Map();
+  out.forEach(e => {
+    const k = key(e), was = merged.get(k);
+    if(!was){ merged.set(k, e); return; }
+    e.todo.forEach(t => { if(!was.todo.some(x => norm(x) === norm(t))) was.todo.push(t); });
+    was.been = was.been || e.been; was.category = was.category || e.category;
+    was.notes = [was.notes, e.notes].filter(Boolean).join('; ');
+  });
+  return { entries: [...merged.values()], loose };
+}
+/* what send would do with each entry, against the list as it stands */
+function planList(text){
+  const { entries, loose } = parseList(text);
+  const { byNorm, byKey } = cached();
+  const plan = entries.map(e => {
+    const k = key(e), have = byKey.has(k) ? (byKey.get(k) || places.find(p => key(p) === k)) : null;   // null in byKey = a twin pair: take the first
+    if(!have) return { e, op: 'add', newCity: byNorm.get(norm(e.city)) !== e.city };
+    const todo = items(have.toOrder), done = items(have.ordered);
+    const fresh = e.todo.filter(t => !todo.concat(done).some(x => norm(x) === norm(t)));
+    const changes = {};
+    if(fresh.length) changes.toOrder = todo.concat(fresh).join('; ');
+    if(e.been && !isBeen(have)) changes.rating = 'x';
+    if(e.category && !have.category) changes.category = e.category;
+    if(e.notes && !norm(have.notes).includes(norm(e.notes))) changes.notes = [have.notes, e.notes].filter(Boolean).join('; ');
+    return { e, op: Object.keys(changes).length ? 'update' : 'same', have, changes, fresh };
+  });
+  return { plan, loose };
+}
+
+const LIST_KEY = 'oot.list', LIST_DIRTY = 'oot.listDirty';
+let listText = fetchStored(LIST_KEY) || '';
+let listTimer = null, listSending = false;
+function listCount(){ try{ const p = parseList(listText); return p.entries.length + p.loose.length; }catch(e){ return 0; } }
+function syncListChip(){ const n = listCount(); $('listBtn').textContent = n ? `list ${n}` : 'list'; }
+function setListText(t, push){
+  listText = t; store(LIST_KEY, t);
+  syncListChip();
+  if(!push) return;
+  store(LIST_DIRTY, '1');
+  clearTimeout(listTimer);
+  listTimer = setTimeout(pushList, 1200);
+}
+async function pushList(){
+  if(!backend || !backend.putList) return;
+  try{ await backend.putList(listText); store(LIST_DIRTY, null); setListStatus('saved'); }
+  catch(e){ console.error(e); setListStatus('saved on this device — OneDrive did not take it yet'); }
+}
+/* on start: OneDrive's copy wins, unless this device has edits it has not sent up yet */
+async function pullList(){
+  if(!backend || !backend.getList) return;
+  try{
+    if(fetchStored(LIST_DIRTY)){ await pushList(); return; }
+    const before = listText;
+    const t = await backend.getList();
+    if(listText !== before || fetchStored(LIST_DIRTY)) return;      // typed while the read was out: this device's text wins
+    if(typeof t === 'string' && t !== listText){
+      setListText(t, false);
+      if($('listSheet').classList.contains('open') && document.activeElement !== $('listText')){ $('listText').value = t; renderPlan(); }
+    }
+  }catch(e){ console.error(e); }
+}
+function setListStatus(s){ if($('listStatus')) $('listStatus').textContent = s; }
+
+function renderPlan(){
+  const { plan, loose } = planList(listText);
+  const adds = plan.filter(p => p.op === 'add'), ups = plan.filter(p => p.op === 'update');
+  const byCity = new Map();
+  plan.forEach(p => { (byCity.get(p.e.city) || byCity.set(p.e.city, []).get(p.e.city)).push(p); });
+  const line = p => {
+    const e = p.e;
+    const what = p.op === 'add' ? `new · ${e.kind}${e.category ? ' · ' + esc(e.category) : ''}${e.todo.length ? ` · ${e.todo.length} ${words(e).todo.toLowerCase()}` : ''}`
+      : p.op === 'update' ? 'on the list — adds ' + [p.fresh.length ? `${p.fresh.length} ${words(p.have).todo.toLowerCase()}` : '', p.changes.rating ? 'been' : '',
+          p.changes.category ? 'category' : '', p.changes.notes ? 'a note' : ''].filter(Boolean).join(', ')
+      : 'on the list already — nothing new';
+    return `<div class="planrow${p.op === 'same' ? ' same' : ''}"><span class="${e.been ? 'struck' : ''}">${esc(e.name)}</span><span class="planwhat">${what}</span></div>`;
+  };
+  $('listPlan').innerHTML =
+    [...byCity.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([c, ps]) => {
+      const pl = placeOf(c);
+      return `<div class="plancity">${esc(c)} <span class="planwhere">${esc(pl.sub === pl.regions.join(' / ') ? pl.sub : pl.sub + ' · ' + pl.regions.join(' / '))}${ps.some(p => p.newCity) ? ' · new city' : ''}</span></div>` + ps.map(line).join('');
+    }).join('') +
+    (loose.length ? `<div class="plancity">no city yet <span class="planwhere">stays in the list — put a city above it or after a —</span></div>` +
+      loose.map(e => `<div class="planrow same"><span>${esc(e.name)}</span></div>`).join('') : '');
+  const n = adds.length + ups.length;
+  $('listSend').disabled = !n || listSending;
+  $('listSend').textContent = n ? `send ${n} — ${[adds.length ? adds.length + ' new' : '', ups.length ? ups.length + ' updated' : ''].filter(Boolean).join(', ')}` : 'send';
+}
+function openList(){
+  $('listText').value = listText;
+  setListStatus(fetchStored(LIST_DIRTY) ? 'saved on this device' : '');
+  renderPlan();
+  openSheet('listSheet');
+  pullList();
+}
+$('listBtn').addEventListener('click', openList);
+$('listText').addEventListener('input', () => { setListText($('listText').value, true); setListStatus('saving…'); clearTimeout(planTimer); planTimer = setTimeout(renderPlan, 200); });
+let planTimer = null;
+$('listHelpBtn').addEventListener('click', () => { $('listHelp').hidden = !$('listHelp').hidden; });
+
+/* lines that were not sent (no city) are what is left of the list afterwards */
+function leftover(text, sentLines){
+  const keep = [];
+  let drop = false;
+  String(text).split(/\r?\n/).forEach((raw, n) => {
+    if(INDENT.test(raw) && raw.trim()){ if(!drop) keep.push(raw); return; }
+    drop = sentLines.has(n);
+    if(!drop && raw.trim() && !asCity(raw.trim()) && !KIND_OF_WORD[norm(raw.trim().replace(/:$/, ''))]) keep.push(raw);
+  });
+  return keep.join('\n');
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+$('listSend').addEventListener('click', async () => {
+  if(listSending) return;
+  const text = listText;
+  const { plan } = planList(text);
+  const todo = plan.filter(p => p.op !== 'same');
+  if(!todo.length) return;
+  listSending = true; $('listSend').disabled = true;
+  const sent = new Set(plan.filter(p => p.op === 'same').map(p => p.e.line));
+  const say = s => { $('listSend').textContent = s; };
+  try{
+    /* updates first: each one reads its row back before writing, as every edit does */
+    const ups = todo.filter(p => p.op === 'update');
+    for(let i = 0; i < ups.length; i++){
+      say(`updating ${i + 1} of ${ups.length}…`);
+      await writeUpdate(ups[i].have, Object.assign({}, ups[i].have, ups[i].changes));
+      sent.add(ups[i].e.line);
+    }
+    /* new rows: coordinates from the city when it is known, otherwise one lookup per new city */
+    const adds = todo.filter(p => p.op === 'add');
+    const cents = cityCentroids(), looked = new Map();
+    const recs = [];
+    for(const p of adds){
+      const e = p.e;
+      let g = cents.has(e.city) ? { lat: cents.get(e.city).lat.toFixed(6), lng: cents.get(e.city).lng.toFixed(6) } : looked.get(e.city);
+      if(g === undefined){
+        say(`finding ${cityName(e.city)}…`);
+        g = await geocode({ city: e.city, address: '' });
+        looked.set(e.city, g);
+        if(backend.live) await sleep(1100);          // OpenStreetMap asks for one request a second
+      }
+      recs.push({ name: e.name, category: e.category, city: e.city, rating: e.been ? 'x' : '', toOrder: e.todo.join('; '),
+        ordered: '', notes: e.notes, address: '', lat: g ? g.lat : '', lng: g ? g.lng : '', closed: '', kind: e.kind, _line: e.line });
+    }
+    const CHUNK = 40;
+    for(let i = 0; i < recs.length; i += CHUNK){
+      const part = recs.slice(i, i + CHUNK);
+      say(`adding ${Math.min(i + CHUNK, recs.length)} of ${recs.length}…`);
+      const clean = part.map(r => { const o = Object.assign({}, r); delete o._line; return o; });
+      let first = null;
+      if(backend.addMany) first = await backend.addMany(clean);
+      else for(const r of clean){ const ix = await backend.add(r); if(first === null) first = ix; }
+      lastWrite = Date.now();
+      clean.forEach((r, j) => places.push(Object.assign({ index: first === null || first === undefined ? null : first + j }, r)));
+      part.forEach(r => sent.add(r._line));
+    }
+    refreshLists();
+    setListText(leftover(text, sent), true);
+    $('listText').value = listText;
+    render();
+    setListStatus(`sent — ${recs.length} new, ${ups.length} updated`);
+  }catch(e){
+    report(e);
+    setListText(leftover(text, sent), true);            // whatever went through is not sent twice
+    $('listText').value = listText;
+  }finally{
+    listSending = false; renderPlan();
+  }
+});
+
 /* ---------- re-read when the page comes back ---------- */
 async function refreshIfStale(){
   if(!booted || document.visibilityState === 'hidden') return;
   if(document.querySelector('.sheet.open')) return;          // a sheet holds the row it opened with
   if(Date.now() - lastLoad < 20000 || Date.now() - lastWrite < 10000) return;
   try{ await loadAll(); render(); }catch(e){ /* offline or an expired token: keep what is on screen */ }
+  pullList();
   checkVersion();
 }
 ['visibilitychange','pageshow','focus'].forEach(ev => (ev === 'visibilitychange' ? document : window).addEventListener(ev, refreshIfStale));
@@ -960,10 +1303,12 @@ async function init(){
   $('gate').style.display = 'none';
   ['appHeader','main','fab'].forEach(id => $(id).style.display = '');
   render();
+  syncListChip();
   booted = true;
   checkVersion();
+  pullList();
 }
-window.__oot = { get places(){ return places; }, state, render, canonCity, openCity };
+window.__oot = { get places(){ return places; }, state, render, canonCity, openCity, parseList, planList, placeOf };
 /* MSAL's silent token renewal loads this page in a hidden iframe; booting the app
    there only gets in its way. The preview runs in an iframe on purpose and brings
    its own backend, so it still boots. */
