@@ -410,4 +410,7 @@ the preview is saved.
   computer use. Background clicks and menus do nothing in it (Electron; Repository ▸ Fetch reports
   disabled); it needs full-screen control once: bring it forward, then **cmd+P** pushes even when
   the toolbar still reads Fetch origin. Check with `git ls-remote origin main` and the live
-  `version.txt`. The sandbox's own git proxy refuses this repo (add_repo for push was refused).
+  `version.txt`. The sandbox's own git proxy refused this repo in that session (add_repo for push was
+  refused); in a later session the same day **add_repo with push access worked**: clone into the
+  sandbox, commit, push, then `git pull --ff-only` in the mounted repo (delete permission granted) so
+  the Mac's copy matches. Try that first; GitHub Desktop is the fallback.
