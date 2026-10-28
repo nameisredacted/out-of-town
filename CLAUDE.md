@@ -1,6 +1,8 @@
-# out of town — working notes
+# travel — working notes
 
-Stripped-down city directory for places outside the hometown list. Separate from
+Named **travel** in the app since 2026.10.28-1 (repo, Pages URL and workbook keep the
+`out-of-town` / `Out of Town.xlsx` names: renaming the repo would change the URL and the MSAL
+redirect URI). Stripped-down city directory for places outside the hometown list. Separate from
 **eat + drink** (`../food-drink-app`) on purpose: that app is changing a lot, and this one
 is meant to stay small while it holds many cities with only a few places each.
 
@@ -42,18 +44,36 @@ Vacaville (Solano) stayed.
   is in New York and Los Angeles). A twin name + city is refused on add and on rename.
 - **City** is `City, ST` for the US, `City, Country` elsewhere. `canonCity()` snaps a typed
   city to an existing spelling (case, spacing and accents ignored) and upper-cases a known
-  state code, so `phoenix,  az` becomes `Phoenix, AZ`. The index (2026.10.20-2) puts every
-  US city under one **United States** heading, first, with a state subheading for each state;
-  every other city is grouped under its country (the part after the last comma). City rows
-  under a heading show only the town — the heading already says the state or country.
-  Search results and the near-me list keep the full `City, ST` / `City, Country`.
-  Each country is a collapsible `<details class="country">` (2026.10.20-4), closed by default,
-  its summary showing the place count; which ones are open is remembered per browser in
-  `localStorage` (`oot.openCountries`), never in the workbook. Headings (2026.10.20-5, option H
-  "one black rule" from the heading canvas): country 15px bold under a single 1px black rule,
-  place count muted on the right, no chevron; state 13px bold muted grey, title case; city rows
-  15px regular black with a bare muted count and no dividers, indented 14px under a state
-  (2026.10.20-6). City names are accent blue since 2026.10.27-1 (blue = tappable, as in
+  state code, so `phoenix,  az` becomes `Phoenix, AZ`. The index (2026.10.28-4) follows the
+  **Apple Notes travel folder**: area label (`united states`, `international`; muted 12px) ▸
+  region = one note (West, Southwest, Midwest, South, East, Alaska, Territories, National; North
+  America (Canada, Greenland), Mexico / Latin / South America, Caribbean, Europe, Africa, Asia,
+  Oceania, Antarctica, Global (Bike, Cruise)) ▸ state or country ▸ town. Region and state/country are both
+  dropdowns (`<details class="country">` / `<details class="sub">`), closed by default, each summary
+  showing its place count; a region holding a single state or country (Alaska, National,
+  Antarctica) lists its towns directly. `STATE_REGION` / `COUNTRY_REGION` in the script map
+  each state and country to the note it was filed in, checked against `import/notes-20261019/`,
+  with the user's rulings (2026-10-28): **Virginia is South**; **Alaska stays under the United
+  States**; **every US territory outside the 50 states and DC is filed under Territories by its own
+  name** (`TERRITORIES`: Puerto Rico, US Virgin Islands, Guam, American Samoa, Northern Mariana
+  Islands, US Minor Outlying Islands — each accepts its postal code and common spellings, e.g.
+  `U.S. Virgin Islands`, `VI`, `Saipan, MP`); **North America (Canada, Greenland) sits under
+  international**; **Cruise sits under Global**; **Armenia is Asia**. Bermuda is Caribbean.
+  **Countries on two continents are listed under both** regions, from one entry in
+  `TWO_CONTINENTS` (Russia, Turkey, Kazakhstan, Georgia, Azerbaijan: Europe + Asia; Egypt: Africa +
+  Asia; Indonesia: Asia + Oceania). Both entries are drawn from the same rows, so they are always
+  identical; the city total counts them once; a city page reads `Turkey · Europe / Asia`. Change
+  that list in one place, never one region at a time. Multi-place tails: `United States` →
+  National, `Europe` / `South America` → that region's `across countries`, `Americas` and `Bike` → Global ▸ Bike (the
+  Alaska-to-Tierra-del-Fuego ride), `Cruise` → Global ▸ Cruise. A country not in the map goes to **elsewhere**, last, never hidden — add it to
+  `COUNTRY_REGION`. Which dropdowns are open is kept
+  per browser in `localStorage` (`oot.openGroups`, ids `Region` and `Region/Sub`), never in the
+  workbook. Town rows show only the town; search results and the near-me list keep the full
+  `City, ST` / `City, Country`. Search also lists a state's or country's towns when the query is its
+  full name (`puerto rico`, `georgia`). A city page's sub-line reads `Arizona · Southwest`.
+  Headings (2026.10.20-5, option H "one black rule"): region 15px bold under a single 1px black rule,
+  place count muted on the right, no chevron; state/country 15px black, bold while open; town rows
+  15px with a bare muted count and no dividers, indented 14px inside a state/country. City names are accent blue since 2026.10.27-1 (blue = tappable, as in
   eat + drink). Everything shares one left-aligned 640px column (2026.10.20-7): `main`
   (max-width 640px, no auto margins), the sticky header (inset 14px each side, so its bottom
   rule ends where the country rules end), the detail sheet, and the + button (pinned 20px
@@ -281,3 +301,8 @@ the preview is saved.
   Deleted in Notes: folders travel/to play (with international), to visit/international,
   north america, skiing, family, and the 5 notes in travel/to visit — 36 notes, in Recently Deleted
   for 30 days. Left: travel/to visit/local (`local`, `go to tamales bay`).
+- 2026-10-28: **renamed travel; index rebuilt on the notes' filing** (2026.10.28-1; corrected in
+  2026.10.28-2 to -4: Virginia South, US territories and Alaska under `united states`, Armenia Asia,
+  two-continent countries in both regions — see Data model).
+  No workbook change (15,979 rows). Every row lands in a named region; nothing falls to
+  `elsewhere`.

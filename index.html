@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>out of town</title>
+<title>travel</title>
 <!--MSAL--><script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.30.0/lib/msal-browser.min.js"></script><!--/MSAL-->
 <style>
   /* Same system as eat + drink (its "minimal" pass): one family, one accent,
@@ -54,9 +54,16 @@
   details.country[open] > summary{padding-bottom:4px;}
   details.country[open]{padding-bottom:8px;}
   .rcount{font-size:13px;font-weight:400;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;}
-  .subregion{font-size:13px;font-weight:700;color:var(--muted2);padding:18px 0 4px;}
-  details.country > summary + .subregion{padding-top:8px;}
-  .subregion ~ .city{padding-left:14px;}
+  /* the travel notes' folders: area label ▸ region (a note) ▸ state / country ▸ town */
+  .area{font-size:12px;color:var(--muted);padding:22px 0 6px;letter-spacing:.02em;}
+  .note + .area{padding-top:8px;}
+  details.sub > summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+                        padding:7px 0;font-size:15px;color:var(--text);}
+  details.sub > summary::-webkit-details-marker{display:none;}
+  details.sub > summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  details.sub[open] > summary{font-weight:700;}
+  details.sub[open]{padding-bottom:6px;}
+  details.sub .city{padding-left:14px;}
   .city{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:6px 0;cursor:pointer;}
   .city .cn{font-size:15px;font-weight:400;color:var(--accent);}
   .city .cc{font-size:12px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums;}
@@ -156,7 +163,7 @@
 <div id="previewBanner" class="banner" style="display:none">preview — nothing here is saved</div>
 
 <header id="appHeader" style="display:none">
-  <h1>out of town <a class="loglink" id="homeLink" href="https://nameisredacted.github.io/food-drink-app/">eat + drink</a></h1>
+  <h1>travel <a class="loglink" id="homeLink" href="https://nameisredacted.github.io/food-drink-app/">eat + drink</a></h1>
   <div class="ver" id="ver"></div>
   <div class="searchrow">
     <input id="q" class="search" type="search" placeholder="search…" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="off" enterkeyhint="search">
@@ -213,7 +220,7 @@
 
 <script>
 /* ====== CONFIG ====== */
-const APP_VERSION = "2026.10.27-2";
+const APP_VERSION = "2026.10.28-4";
 const MSAL_CLIENT_ID = "7175d0f0-c775-4157-87de-0d85914a1350";
 const REDIRECT_URI = "https://nameisredacted.github.io/out-of-town/";
 const GRAPH_SCOPES = ["Files.ReadWrite", "User.Read"];
@@ -337,31 +344,94 @@ const key = v => norm(v.name) + '|' + norm(v.city);
 const isClosed = v => !!(v.closed || '').trim();
 const items = s => String(s || '').split(/\s*;\s*/).map(x => x.trim()).filter(Boolean);
 
-const STATES = {AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',DE:'Delaware',DC:'District of Columbia',FL:'Florida',GA:'Georgia',HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming',PR:'Puerto Rico'};
+const STATES = {AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',DE:'Delaware',DC:'District of Columbia',FL:'Florida',GA:'Georgia',HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming',PR:'Puerto Rico',VI:'US Virgin Islands',GU:'Guam',AS:'American Samoa',MP:'Northern Mariana Islands',UM:'US Minor Outlying Islands'};
 
-/* "Sedona, AZ" -> Arizona; "Paris, France" -> France; "Sedona" -> no region */
-function regionOf(city){
-  const parts = city.split(',').map(s => s.trim()).filter(Boolean);
-  if(parts.length < 2) return 'no state given';
-  const last = parts[parts.length - 1];
-  if(last === 'United States') return MULTI_STATE;
-  return STATES[last.toUpperCase()] || last;
+/* ---------- where a city sits: the travel notes' own filing ----------
+   The Apple Notes "travel" folder was filed  north america | international  ▸  one note per
+   region (West, Southwest … Europe, Asia …)  ▸  a state or country heading  ▸  the town.
+   The index uses the same levels, with the US regions under their own "united states" label.
+   Each state and country maps to the note it was filed in (checked against the notes,
+   2026-10-28), with the user's corrections: Virginia is South; Alaska stays under the United
+   States, and every US territory outside the 50 states and DC is filed under Territories, by its
+   own name; Canada and Greenland form a North America region under international; Cruise sits
+   under Global; Armenia is
+   Asia. A country that spans two continents (TWO_CONTINENTS) is listed under both regions; both
+   entries are drawn from the same rows, so they are always identical. A country not listed
+   lands in "elsewhere", never disappears. */
+const LATAM = 'Mexico / Latin / South America';
+const AREAS = [
+  ['united states', ['West', 'Southwest', 'Midwest', 'South', 'East', 'Alaska', 'Territories', 'National']],
+  ['international', ['North America', LATAM, 'Caribbean', 'Europe', 'Africa', 'Asia', 'Oceania', 'Antarctica', 'Global']],
+  ['', ['elsewhere']],
+];
+const STATE_REGION = {};
+Object.entries({
+  West: 'CA CO HI ID MT NV OR WA WY', Southwest: 'AZ NM UT', Midwest: 'IA IL IN KS MI MN MO ND NE OH SD WI',
+  South: 'AL AR FL GA KY LA MS NC OK SC TN TX VA', East: 'CT DC DE MA MD ME NH NJ NY PA RI VT WV',
+  Alaska: 'AK', Territories: 'PR VI GU AS MP UM',
+}).forEach(([r, list]) => list.split(' ').forEach(st => { STATE_REGION[st] = r; }));
+const COUNTRY_REGION = {};
+Object.entries({
+  'North America': 'Canada|Greenland', Antarctica: 'Antarctica',
+  [LATAM]: 'Mexico|Belize|Guatemala|El Salvador|Honduras|Nicaragua|Costa Rica|Panama|Colombia|Venezuela|Guyana|Suriname|French Guiana|' +
+    'Ecuador|Peru|Bolivia|Brazil|Paraguay|Uruguay|Argentina|Chile|Falkland Islands|South Georgia and the South Sandwich Islands',
+  Caribbean: 'Bahamas|The Bahamas|Cuba|Jamaica|Haiti|Dominican Republic|British Virgin Islands|Anguilla|' +
+    'Saint Martin|Sint Maarten|St. Barts|Saba|Sint Eustatius|St. Kitts and Nevis|Antigua and Barbuda|Montserrat|Guadeloupe|Dominica|' +
+    'Martinique|St. Lucia|St. Vincent and the Grenadines|Barbados|Grenada|Trinidad and Tobago|Aruba|Curaçao|Bonaire|' +
+    'Cayman Islands|Turks and Caicos|Bermuda',
+  Europe: 'United Kingdom|Ireland|Iceland|Norway|Sweden|Finland|Denmark|Faroe Islands|Estonia|Latvia|Lithuania|Poland|Germany|' +
+    'Netherlands|Belgium|Luxembourg|France|Monaco|Andorra|Spain|Portugal|Gibraltar|Italy|Vatican City|San Marino|Malta|' +
+    'Switzerland|Liechtenstein|Austria|Czech Republic|Slovakia|Hungary|Slovenia|Croatia|Bosnia and Herzegovina|Serbia|Montenegro|' +
+    'Kosovo|Albania|North Macedonia|Greece|Bulgaria|Romania|Moldova|Ukraine|Belarus|Cyprus|Guernsey|Jersey|Isle of Man',
+  Africa: 'Morocco|Western Sahara|Algeria|Tunisia|Libya|Sudan|Ethiopia|Eritrea|Djibouti|Somalia|Kenya|Uganda|Rwanda|Burundi|' +
+    'Tanzania|Mozambique|Malawi|Zambia|Zimbabwe|Botswana|Namibia|South Africa|Lesotho|Eswatini|Angola|Madagascar|Mauritius|' +
+    'Seychelles|Comoros|Réunion|Republic of the Congo|Democratic Republic of the Congo|Gabon|Cameroon|Nigeria|Benin|Togo|Ghana|' +
+    'Ivory Coast|Liberia|Sierra Leone|Guinea|Guinea-Bissau|Senegal|Gambia|Cape Verde|Mali|Burkina Faso|Niger|Chad|São Tomé and Príncipe',
+  Asia: 'Japan|South Korea|North Korea|China|Hong Kong|Macau|Taiwan|Mongolia|Vietnam|Laos|Cambodia|Thailand|Myanmar|Malaysia|Singapore|' +
+    'Brunei|Philippines|Timor-Leste|India|Nepal|Bhutan|Bangladesh|Sri Lanka|Maldives|Pakistan|Afghanistan|Kazakhstan|' +
+    'Uzbekistan|Kyrgyzstan|Tajikistan|Turkmenistan|Armenia|Iran|Iraq|Syria|Lebanon|Israel|Palestine|Jordan|' +
+    'Saudi Arabia|Yemen|Oman|United Arab Emirates|Qatar|Bahrain|Kuwait|Marshall Islands',
+  Oceania: 'Australia|New Zealand|Fiji|French Polynesia|Papua New Guinea|Cook Islands|Samoa|Tonga|Vanuatu|New Caledonia|Palau|' +
+    'Solomon Islands|Micronesia|Kiribati|Tuvalu',
+}).forEach(([r, list]) => list.split('|').forEach(c => { COUNTRY_REGION[norm(c)] = [r]; }));
+/* Countries on two continents: one entry here puts the same country, with the same towns
+   and places, under both regions. Edit the list here, never one region at a time. */
+const TWO_CONTINENTS = {
+  Russia: ['Europe', 'Asia'], Turkey: ['Europe', 'Asia'], Kazakhstan: ['Europe', 'Asia'],
+  Georgia: ['Europe', 'Asia'], Azerbaijan: ['Europe', 'Asia'], Egypt: ['Africa', 'Asia'], Indonesia: ['Asia', 'Oceania'],
+};
+Object.entries(TWO_CONTINENTS).forEach(([c, rs]) => { COUNTRY_REGION[norm(c)] = rs; });
+/* US territories outside the 50 states and DC: one name each, whichever spelling a city uses */
+const TERRITORIES = {
+  'Puerto Rico': 'Puerto Rico|PR', 'US Virgin Islands': 'US Virgin Islands|U.S. Virgin Islands|United States Virgin Islands|Virgin Islands (US)|Virgin Islands (U.S.)|USVI|VI',
+  Guam: 'Guam|GU', 'American Samoa': 'American Samoa|AS', 'Northern Mariana Islands': 'Northern Mariana Islands|Northern Marianas|Saipan|CNMI|MP',
+  'US Minor Outlying Islands': 'US Minor Outlying Islands|United States Minor Outlying Islands|UM|Wake Island|Midway|Midway Atoll|Johnston Atoll|' +
+    'Baker Island|Howland Island|Jarvis Island|Kingman Reef|Navassa Island|Palmyra Atoll',
+};
+const TERRITORY_OF = {};
+Object.entries(TERRITORIES).forEach(([name, list]) => list.split('|').forEach(a => { TERRITORY_OF[norm(a)] = name; }));
+/* Places that span several states or countries were named after their route or note
+   ("Chicago to Santa Monica, United States", "Canterbury to Rome, Europe", "At sea, Cruise"). */
+const ACROSS_STATES = 'across states', ACROSS = 'across countries', NO_PLACE = 'no country or state given';
+const MULTI = {
+  'United States': ['National', ACROSS_STATES], Americas: ['Global', 'Bike'], Bike: ['Global', 'Bike'], Global: ['Global', ACROSS],
+  Europe: ['Europe', ACROSS], 'South America': [LATAM, ACROSS], Cruise: ['Global', 'Cruise'],
+};
+/* "Sedona, AZ" -> { regions: [Southwest], sub: Arizona }; "Istanbul, Turkey" -> { regions: [Europe, Asia], sub: Turkey } */
+function placeOf(city){
+  const parts = String(city || '').split(',').map(s => s.trim()).filter(Boolean);
+  if(parts.length < 2) return { regions: ['elsewhere'], sub: NO_PLACE };
+  const last = parts[parts.length - 1], st = last.toUpperCase();
+  if(TERRITORY_OF[norm(last)]) return { regions: ['Territories'], sub: TERRITORY_OF[norm(last)] };
+  if(STATES[st]) return { regions: [STATE_REGION[st] || 'National'], sub: STATES[st] };
+  if(MULTI[last]) return { regions: [MULTI[last][0]], sub: MULTI[last][1] };
+  return { regions: COUNTRY_REGION[norm(last)] || ['elsewhere'], sub: last };
 }
-/* Places that span several states ("Midwest, United States", named after the travel note they
-   came from) sit under the United States heading in their own group, after the states.
-   Places that span countries use "<area>, Global" and form a Global heading after every country. */
-const MULTI_STATE = 'across states', GLOBAL = 'Global';
 function cityName(city){ return city.split(',')[0].trim(); }
-/* Index grouping: every US city sits under one "United States" heading with a
-   state heading below it; everywhere else is grouped by country. */
-function isUS(city){
-  const parts = city.split(',').map(s => s.trim());
-  return parts.length >= 2 && !!STATES[parts[parts.length - 1].toUpperCase()];
-}
-function countryOf(city){
-  const parts = city.split(',').map(s => s.trim()).filter(Boolean);
-  if(parts.length < 2) return 'no country or state given';
-  return isUS(city) ? 'United States' : parts[parts.length - 1];
+/* the line under a city's name: "Arizona · Southwest", "Turkey · Europe / Asia", "Canada" (not "Canada · Canada") */
+function whereLine(city){
+  const p = placeOf(city), r = p.regions.join(' / ');
+  return p.sub === r ? r : `${p.sub} · ${r}`;
 }
 
 /* Identity is name + city, so "sedona, az" and "Sedona, AZ" must not become two
@@ -473,7 +543,7 @@ function render(){
   const counts = countByCity(pool);
 
   if(q){
-    const cities = [...counts.keys()].filter(c => norm(c).includes(q)).sort((a, b) => a.localeCompare(b));
+    const cities = [...counts.keys()].filter(c => { const p = placeOf(c); return norm(c).includes(q) || norm(p.sub) === q; }).sort((a, b) => a.localeCompare(b));
     const hits = sortPlaces(pool.filter(p =>
       [p.name, p.category, p.toOrder, p.ordered, p.notes].some(f => norm(f).includes(q))));
     main.innerHTML =
@@ -494,7 +564,7 @@ function render(){
     main.innerHTML = `
       <button class="back" id="backBtn">‹ all cities</button>
       <div class="cityhead"><h2>${esc(cityName(state.city))}</h2>
-        <div class="sub">${esc(regionOf(state.city))} · ${plural(list.length, 'place')}${shut ? ` (${shut} closed)` : ''}</div></div>
+        <div class="sub">${esc(whereLine(state.city))} · ${plural(list.length, 'place')}${shut ? ` (${shut} closed)` : ''}</div></div>
       ${body || '<div class="note">nothing here matches the filter.</div>'}
       <button class="addcity" id="addHere">+ add a place in ${esc(cityName(state.city))}</button>`;
     return;
@@ -512,38 +582,47 @@ function render(){
       rows.map(r => cityRow(r.c, counts.get(r.c), `${fmtMi(r.d)} · ${counts.get(r.c)}`)).join('');
     return;
   }
-  const groups = new Map();
-  [...counts.keys()].sort((a, b) => a.localeCompare(b)).forEach(c => { const g = countryOf(c); (groups.get(g) || groups.set(g, []).get(g)).push(c); });
-  const LAST = 'no country or state given';
-  const order = [...groups.keys()].sort((a, b) =>
-    (a === LAST) - (b === LAST) || (a === GLOBAL) - (b === GLOBAL) || (b === 'United States') - (a === 'United States') || a.localeCompare(b));
-  const section = g => {
-    const list = groups.get(g);
-    const n = list.reduce((a, c) => a + counts.get(c), 0);
-    let body;
-    if(g !== 'United States'){
-      body = list.map(c => cityRow(c, counts.get(c), null, g !== LAST)).join('');
-    }else{
-      const byState = new Map();
-      list.forEach(c => { const st = regionOf(c); (byState.get(st) || byState.set(st, []).get(st)).push(c); });
-      body = [...byState.keys()].sort((a, b) => (a === MULTI_STATE) - (b === MULTI_STATE) || a.localeCompare(b))
-        .map(st => `<div class="subregion">${esc(st)}</div>` + byState.get(st).map(c => cityRow(c, counts.get(c), null, true)).join('')).join('');
-    }
-    return `<details class="country" data-g="${esc(g)}"${openCountries.has(g) ? ' open' : ''}>
-      <summary class="region"><span>${esc(g)}</span><span class="rcount">${n.toLocaleString()}</span></summary>${body}</details>`;
+  /* region (one note) ▸ state or country ▸ town, each level a dropdown, all closed until opened.
+     A region holding a single state or country (Alaska, Canada, National…) lists its towns directly. */
+  const tree = new Map();
+  [...counts.keys()].sort((a, b) => a.localeCompare(b)).forEach(c => {
+    const { regions, sub } = placeOf(c);
+    regions.forEach(region => {           // a two-continent country is drawn in both, from the same towns
+      const subs = tree.get(region) || tree.set(region, new Map()).get(region);
+      (subs.get(sub) || subs.set(sub, []).get(sub)).push(c);
+    });
+  });
+  const total = list => list.reduce((a, c) => a + counts.get(c), 0);
+  const across = k => k === ACROSS || k === ACROSS_STATES || k === NO_PLACE;
+  const towns = list => list.map(c => cityRow(c, counts.get(c), null, placeOf(c).sub !== NO_PLACE)).join('');
+  const regionHtml = r => {
+    const subs = tree.get(r);
+    const keys = [...subs.keys()].sort((a, b) => across(a) - across(b) || a.localeCompare(b));
+    const n = keys.reduce((a, k) => a + total(subs.get(k)), 0);
+    const body = keys.length === 1 ? towns(subs.get(keys[0])) : keys.map(k => {
+      const id = r + '/' + k;
+      return `<details class="sub" data-g="${esc(id)}"${openGroups.has(id) ? ' open' : ''}>
+        <summary><span>${esc(k)}</span><span class="rcount">${total(subs.get(k)).toLocaleString()}</span></summary>${towns(subs.get(k))}</details>`;
+    }).join('');
+    return `<details class="country" data-g="${esc(r)}"${openGroups.has(r) ? ' open' : ''}>
+      <summary class="region"><span>${esc(r)}</span><span class="rcount">${n.toLocaleString()}</span></summary>${body}</details>`;
   };
-  main.innerHTML = `<div class="note">${plural(counts.size, 'city', 'cities')} · ${plural(pool.length, 'place')}</div>` + order.map(section).join('');
+  main.innerHTML = `<div class="note">${plural(counts.size, 'city', 'cities')} · ${plural(pool.length, 'place')}</div>` +
+    AREAS.map(([area, regions]) => {
+      const here = regions.filter(r => tree.has(r));
+      return here.length ? (area ? `<div class="area">${esc(area)}</div>` : '') + here.map(regionHtml).join('') : '';
+    }).join('');
 }
 
-/* Which countries are expanded is a per-browser convenience: kept in
+/* Which regions and states / countries are open is a per-browser convenience: kept in
    localStorage, never in the workbook; the index works without it. */
-const OPEN_KEY = 'oot.openCountries';
-const openCountries = new Set((() => { try { return JSON.parse(localStorage.getItem(OPEN_KEY) || '[]'); } catch(e){ return []; } })());
-function saveOpen(){ try { localStorage.setItem(OPEN_KEY, JSON.stringify([...openCountries])); } catch(e){} }
+const OPEN_KEY = 'oot.openGroups';
+const openGroups = new Set((() => { try { return JSON.parse(localStorage.getItem(OPEN_KEY) || '[]'); } catch(e){ return []; } })());
+function saveOpen(){ try { localStorage.setItem(OPEN_KEY, JSON.stringify([...openGroups])); } catch(e){} }
 $('main').addEventListener('toggle', e => {
   const d = e.target;
-  if(!d.matches || !d.matches('details.country')) return;
-  if(d.open) openCountries.add(d.dataset.g); else openCountries.delete(d.dataset.g);
+  if(!d.matches || !d.matches('details.country, details.sub')) return;
+  if(d.open) openGroups.add(d.dataset.g); else openGroups.delete(d.dataset.g);
   saveOpen();
 }, true);
 
@@ -842,7 +921,7 @@ async function init(){
   if(!backend.live) $('previewBanner').style.display = '';
   try{
     if(backend.start && !(await backend.start())){
-      gate(`<h2>out of town</h2><p>Sign in with the Microsoft account connected to your OneDrive.</p>
+      gate(`<h2>travel</h2><p>Sign in with the Microsoft account connected to your OneDrive.</p>
         <button class="btn primary" id="signInBtn" style="flex:none;padding:12px 24px;">sign in with Microsoft</button>`);
       $('signInBtn').onclick = () => backend.signIn();
       return;
@@ -851,7 +930,7 @@ async function init(){
     await loadAll();
   }catch(e){
     console.error(e);
-    gate(`<h2>out of town</h2><p>Could not load the list.</p><div class="errbox">${esc(e.message)}</div>
+    gate(`<h2>travel</h2><p>Could not load the list.</p><div class="errbox">${esc(e.message)}</div>
       <button class="btn primary" style="flex:none;padding:12px 24px;margin-top:14px;" onclick="location.reload()">try again</button>`);
     return;
   }

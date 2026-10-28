@@ -1,4 +1,4 @@
-// Smoke tests for out of town. jsdom, an in-memory backend, no network, no OneDrive.
+// Smoke tests for travel (the out-of-town repo). jsdom, an in-memory backend, no network, no OneDrive.
 // Run: node tests/smoke.mjs   (npm i jsdom once)
 import { JSDOM } from 'jsdom';
 import fs from 'fs';
@@ -46,18 +46,18 @@ const tick = (dom, ms = 20) => new Promise(r => dom.window.setTimeout(r, ms));
 let pass = 0, fail = 0;
 function ok(cond, msg){ if(cond){ pass++; } else { fail++; console.log('FAIL:', msg); } }
 
-// 1. index groups cities by state
+// 1. index follows the travel notes: area label ▸ region ▸ state ▸ town, all closed; US regions under united states
 {
   const { d } = await app();
+  const areas = [...d.querySelectorAll('.area')].map(e => e.textContent);
+  ok(JSON.stringify(areas) === JSON.stringify(['united states']), 'area labels: ' + areas);
   const regions = [...d.querySelectorAll('.region')].map(e => (e.firstElementChild || e).textContent);
-  ok(JSON.stringify(regions) === JSON.stringify(['United States']), 'one US heading: ' + regions);
-  const states = [...d.querySelectorAll('.subregion')].map(e => e.textContent);
-  ok(JSON.stringify(states) === JSON.stringify(['Arizona','Montana','New York']), 'states under it: ' + states);
-  ok([...d.querySelectorAll('.city .cn')].map(e => e.textContent).join('|') === 'Chandler|Sedona|Bozeman|New York'.replace('Chandler|', ''), 'city names without state: ' + [...d.querySelectorAll('.city .cn')].map(e => e.textContent));
-  ok(d.querySelectorAll('.city').length === 3, 'three cities');
-  ok(d.querySelectorAll('details.country').length === 1 && !d.querySelector('details.country').open, 'country collapsed by default');
+  ok(JSON.stringify(regions) === JSON.stringify(['West', 'Southwest', 'East']), 'regions in notes order: ' + regions);
+  ok(d.querySelectorAll('details.country').length === 3 && [...d.querySelectorAll('details.country')].every(e => !e.open), 'regions collapsed by default');
+  ok(d.querySelectorAll('details.sub').length === 0, 'a region with one state lists its towns directly');
+  ok([...d.querySelectorAll('.city .cn')].map(e => e.textContent).join('|') === 'Bozeman|Sedona|New York', 'town names without state: ' + [...d.querySelectorAll('.city .cn')].map(e => e.textContent));
   ok(d.querySelector('.note').textContent.includes('3 cities · 5 places'), 'count line');
-  ok(d.querySelector('.rcount').textContent === '5', 'country shows its place count only: ' + d.querySelector('.rcount').textContent);
+  ok([...d.querySelectorAll('.rcount')].map(e => e.textContent).join() === '1,2,2', 'region counts: ' + [...d.querySelectorAll('.rcount')].map(e => e.textContent));
   ok([...d.querySelectorAll('.city .cc')].every(e => /^\d+$/.test(e.textContent)), 'city rows show a bare count');
 }
 
@@ -206,15 +206,66 @@ function ok(cond, msg){ if(cond){ pass++; } else { fail++; console.log('FAIL:', 
   ok([...d.querySelectorAll('.note')].some(n => n.textContent.includes('of 400')), 'cap message');
 }
 
-// 13. countries after the US, city names without the country
+// 13. international regions after north america; countries are dropdowns inside a region
 {
-  const rows = seed.concat([{ name: 'Septime', city: 'Paris, France', lat: '48.85', lng: '2.38' }, { name: 'Noma', city: 'Copenhagen, Denmark', lat: '55.68', lng: '12.61' }]);
+  const rows = seed.concat([
+    { name: 'Septime', city: 'Paris, France' }, { name: 'Noma', city: 'Copenhagen, Denmark' },
+    { name: 'Sushi Saito', city: 'Tokyo, Japan' }, { name: 'Pujol', city: 'Mexico City, Mexico' },
+  ]);
   const { d } = await app(rows);
+  const areas = [...d.querySelectorAll('.area')].map(e => e.textContent);
+  ok(JSON.stringify(areas) === JSON.stringify(['united states', 'international']), 'two areas: ' + areas);
   const regions = [...d.querySelectorAll('.region')].map(e => (e.firstElementChild || e).textContent);
-  ok(JSON.stringify(regions) === JSON.stringify(['United States', 'Denmark', 'France']), 'country order: ' + regions);
-  ok([...d.querySelectorAll('.city .cn')].some(e => e.textContent === 'Paris'), 'Paris shown without France');
+  ok(JSON.stringify(regions) === JSON.stringify(['West', 'Southwest', 'East', 'Mexico / Latin / South America', 'Europe', 'Asia']), 'region order: ' + regions);
+  const europe = d.querySelector('details.country[data-g="Europe"]');
+  const subs = [...europe.querySelectorAll('details.sub > summary span:first-child')].map(e => e.textContent);
+  ok(JSON.stringify(subs) === JSON.stringify(['Denmark', 'France']), 'countries inside Europe: ' + subs);
+  ok(!europe.querySelector('details.sub').open, 'countries collapsed by default');
+  ok([...europe.querySelectorAll('.city .cn')].some(e => e.textContent === 'Paris'), 'Paris shown without France');
 }
 
+// 13b. filed where the notes filed them; open dropdowns are remembered
+{
+  const rows = [
+    { name: 'El San Juan', city: 'San Juan, PR' }, { name: 'The Inn at Little Washington', city: 'Washington, VA' },
+    { name: 'Rose Hall', city: 'Montego Bay, Jamaica' }, { name: 'Ciya', city: 'Istanbul, Turkey' },
+    { name: 'Fabrika', city: 'Tbilisi, Georgia' }, { name: 'Two Sisters', city: 'Atlanta, GA' },
+    { name: 'Somewhere', city: 'Ulaanbaatar, Mongolia' }, { name: 'Odd One', city: 'Nowhere, Atlantis' },
+    { name: 'Sobo', city: 'Tofino, Canada' }, { name: 'Ochre', city: 'Cairns, Australia' },
+    { name: 'Tamarind', city: 'Christiansted, US Virgin Islands' }, { name: 'Crow\'s Nest', city: 'Anchorage, AK' },
+    { name: 'Lavash', city: 'Yerevan, Armenia' },
+    { name: 'Hotel Arctic', city: 'Ilulissat, Greenland' }, { name: 'Meskla', city: 'Hagåtña, Guam' }, { name: 'Gladys', city: 'Charlotte Amalie, U.S. Virgin Islands' }, { name: 'Kalachucha', city: 'Saipan, MP' },
+  ];
+  const { d, dom, w } = await app(rows);
+  const where = c => [...d.querySelectorAll(`.city[data-city="${c}"]`)].map(e => e.closest('details.country').dataset.g).join('+');
+  ok(where('San Juan, PR') === 'Territories' && where('Montego Bay, Jamaica') === 'Caribbean', 'Puerto Rico under the US: ' + where('San Juan, PR'));
+  ok(where('Washington, VA') === 'South', 'Virginia in the South');
+  ok(where('Istanbul, Turkey') === 'Europe+Asia' && where('Tbilisi, Georgia') === 'Europe+Asia' && where('Atlanta, GA') === 'South', 'two-continent countries in both; GA South');
+  const areaOf = g => { let e = d.querySelector(`details.country[data-g="${g}"]`); while(e && !e.classList.contains('area')) e = e.previousElementSibling; return e && e.textContent; };
+  ok(areaOf('Territories') === 'united states' && areaOf('North America') === 'international' && !d.querySelector('.area') .textContent.includes('north'), 'territories under united states, North America under international');
+  ok(where('Nowhere, Atlantis') === 'elsewhere', 'unknown country kept, under elsewhere');
+  ok(where('Christiansted, US Virgin Islands') === 'Territories' && where('Anchorage, AK') === 'Alaska' && areaOf('Alaska') === 'united states', 'USVI + Alaska under the US');
+  ok(where('Yerevan, Armenia') === 'Asia', 'Armenia in Asia');
+  ok(where('Tofino, Canada') === 'North America' && d.querySelector('details.sub[data-g="North America/Canada"]'), 'Canada is a country inside North America');
+  ok(where('Hagåtña, Guam') === 'Territories' && where('Charlotte Amalie, U.S. Virgin Islands') === 'Territories' && where('Saipan, MP') === 'Territories', 'every territory, any spelling');
+  ok(d.querySelector('details.sub[data-g="Territories/US Virgin Islands"] .rcount').textContent === '2', 'one name per territory: ' + [...d.querySelectorAll('details.country[data-g="Territories"] summary span:first-child')].map(e => e.textContent));
+  ok(d.querySelector('.region:last-of-type') && [...d.querySelectorAll('.region')].at(-1).firstElementChild.textContent === 'elsewhere', 'elsewhere last');
+  const asia = d.querySelector('details.country[data-g="Asia"]');
+  asia.open = true; asia.dispatchEvent(new dom.window.Event('toggle'));
+  const geo = asia.querySelector('details.sub[data-g="Asia/Georgia"]');
+  geo.open = true; geo.dispatchEvent(new dom.window.Event('toggle'));
+  await tick(dom);
+  w.__oot.render();
+  ok(d.querySelector('details.country[data-g="Asia"]').open && d.querySelector('details.sub[data-g="Asia/Georgia"]').open, 'open dropdowns survive a re-render');
+  const q = d.getElementById('q');
+  q.value = 'puerto rico'; q.dispatchEvent(new dom.window.Event('input')); await tick(dom, 250);
+  ok([...d.querySelectorAll('.city')].some(e => e.dataset.city === 'San Juan, PR'), 'a state name finds its towns');
+  q.value = ''; q.dispatchEvent(new dom.window.Event('input')); await tick(dom, 250);
+  w.__oot.openCity('San Juan, PR'); await tick(dom);
+  ok(d.querySelector('.cityhead .sub').textContent.startsWith('Puerto Rico · Territories'), 'city page says where: ' + d.querySelector('.cityhead .sub').textContent);
+  w.__oot.openCity('Tofino, Canada'); await tick(dom);
+  ok(d.querySelector('.cityhead .sub').textContent.startsWith('Canada · North America'), 'Canada · North America: ' + d.querySelector('.cityhead .sub').textContent);
+}
 
 // 14. To Order box: add an item, then "ate it" moves it to Ordered
 {
@@ -278,19 +329,53 @@ function ok(cond, msg){ if(cond){ pass++; } else { fail++; console.log('FAIL:', 
   ok(/loginRedirect\(Object\.assign\(\{ scopes: GRAPH_SCOPES \}, hint\(\)\)\)/.test(src) && /AUTO_TRY/.test(src), 'signs in without a tap, once');
 }
 
-// 18. multi-state places sit last under the US; multi-country places form a Global heading last
+// 17b. a two-continent country is one set of rows shown twice: a change shows in both places
+{
+  const rows = [{ name: 'Ciya', city: 'Istanbul, Turkey' }, { name: 'Mikla', city: 'Istanbul, Turkey' }, { name: 'Septime', city: 'Paris, France' }, { name: 'Den', city: 'Tokyo, Japan' }];
+  const { d, dom, w, backend } = await app(rows);
+  const counts = () => ['Europe', 'Asia'].map(r => d.querySelector(`details.sub[data-g="${r}/Turkey"] .rcount`).textContent).join();
+  ok(counts() === '2,2', 'same count in both: ' + counts());
+  ok(d.querySelector('.note').textContent.includes('3 cities · 4 places'), 'counted once in the total: ' + d.querySelector('.note').textContent);
+  d.getElementById('fab').click();
+  d.getElementById('f_name').value = 'Karaköy Lokantası';
+  d.getElementById('f_city').value = 'istanbul, turkey';
+  d.getElementById('saveBtn').click(); await tick(dom);
+  ok(backend.table.length === 5, 'one row written, not two');
+  w.__oot.state.view = 'index'; w.__oot.render();
+  ok(counts() === '3,3', 'both updated together: ' + counts());
+  w.__oot.openCity('Istanbul, Turkey'); await tick(dom);
+  ok(d.querySelector('.cityhead .sub').textContent.startsWith('Turkey · Europe / Asia'), 'city page names both: ' + d.querySelector('.cityhead .sub').textContent);
+}
+
+// 18. multi-state places sit under National, multi-country routes under their region
 {
   const rows = seed.concat([
-    { name: 'Route 66', category: 'Scenic Drive', city: 'Midwest, United States', kind: 'see + do' },
-    { name: 'Via Francigena', category: 'Trail', city: 'Europe, Global', kind: 'see + do' },
+    { name: 'Route 66', category: 'Scenic Drive', city: 'Chicago to Santa Monica, United States', kind: 'see + do' },
+    { name: 'Via Francigena', category: 'Trail', city: 'Canterbury to Rome, Europe', kind: 'see + do' },
     { name: 'Septime', city: 'Paris, France' },
+    { name: 'Paul Gauguin', city: 'French Polynesia, Cruise', kind: 'stay' },
   ]);
   const { d } = await app(rows);
   const regions = [...d.querySelectorAll('.region')].map(e => (e.firstElementChild || e).textContent);
-  ok(JSON.stringify(regions) === JSON.stringify(['United States', 'France', 'Global']), 'Global last: ' + regions);
-  const states = [...d.querySelectorAll('.subregion')].map(e => e.textContent);
-  ok(states.at(-1) === 'across states', 'across states after the states: ' + states);
-  ok([...d.querySelectorAll('.city .cn')].some(e => e.textContent === 'Midwest'), 'shows the note area');
+  ok(JSON.stringify(regions) === JSON.stringify(['West', 'Southwest', 'East', 'National', 'Europe', 'Global']), 'Cruise under Global: ' + regions);
+  ok([...d.querySelectorAll('details.country[data-g="Global"] .city .cn')].some(e => e.textContent === 'French Polynesia'), 'cruise towns inside Global');
+  const subs = [...d.querySelectorAll('details.country[data-g="Europe"] details.sub > summary span:first-child')].map(e => e.textContent);
+  ok(JSON.stringify(subs) === JSON.stringify(['France', 'across countries']), 'across countries after the countries: ' + subs);
+  ok([...d.querySelectorAll('details.country[data-g="National"] .city .cn')].some(e => e.textContent === 'Chicago to Santa Monica'), 'shows the route');
+}
+
+// 18b. Global holds Bike (the Americas ride) and Cruise
+{
+  const rows = [{ name: 'Bike from AK to Tierra del Fuego', city: 'Alaska to Tierra del Fuego, Americas', kind: 'see + do' }, { name: 'Paul Gauguin', city: 'French Polynesia, Cruise', kind: 'stay' }];
+  const { d } = await app(rows);
+  const subs = [...d.querySelectorAll('details.country[data-g="Global"] details.sub > summary span:first-child')].map(e => e.textContent);
+  ok(JSON.stringify(subs) === JSON.stringify(['Bike', 'Cruise']), 'Global subs: ' + subs);
+}
+
+// 19. named travel
+{
+  const { d } = await app();
+  ok(d.title === 'travel' && d.querySelector('h1').firstChild.textContent.trim() === 'travel', 'title is travel');
 }
 
 console.log(`${pass} passed, ${fail} failed`);
