@@ -86,6 +86,13 @@ Vacaville (Solano) stayed.
   It also sets `--vw` (window width in zoomed px) for the + button, because `100vw` ignores
   the zoom. Contrast comes from weight and the
   one rule only; no capitals, bands or icons.
+- **Random (2026.10.28-5)**: the `random` chip in the header opens a random **city** (never a
+  single place; each city counts once however many places it has). Scope is the dropdown most
+  recently opened that is still open and showing — open Europe ▸ Italy and it picks only Italian
+  towns, and the chip reads `random in Italy`; a country inside a closed region does not count;
+  nothing open = everywhere. The kind and y / - / n filters apply; the same city never comes up
+  twice in a row. Open order is the insertion order of `oot.openGroups`; a re-render that
+  restores a remembered dropdown does not reorder it.
 - **Look (2026.10.27-1)** follows eat + drink's "minimal" pass: accent `#1a4fd6`, hairlines
   `#ececec`, square corners everywhere, underline-only search, text-only filters (blue, bold
   black when on), list items as blue names over a grey sub-line with a hairline below, the + as
@@ -121,7 +128,7 @@ than 20 s old, no write happened in the last 10 s, and no sheet is open.
 
 ## What it deliberately does not have
 
-No dice, no data check, no chain logic, no vendor/section log, no categories in
+No dice (the **random** chip, 2026.10.28-5, picks a location only — see below), no data check, no chain logic, no vendor/section log, no categories in
 `localStorage`. If one of these is wanted, add it here rather than porting eat + drink's
 version wholesale.
 

@@ -372,6 +372,36 @@ function ok(cond, msg){ if(cond){ pass++; } else { fail++; console.log('FAIL:', 
   ok(JSON.stringify(subs) === JSON.stringify(['Bike', 'Cruise']), 'Global subs: ' + subs);
 }
 
+// 20. random: a city, within the dropdown last opened, from everywhere when none is open
+{
+  const rows = [
+    { name: 'A', city: 'Rome, Italy' }, { name: 'B', city: 'Rome, Italy' }, { name: 'C', city: 'Florence, Italy' },
+    { name: 'D', city: 'Paris, France' }, { name: 'E', city: 'Tokyo, Japan', kind: 'stay' }, { name: 'F', city: 'Sedona, AZ' },
+  ];
+  const { d, dom, w } = await app(rows);
+  const btn = d.getElementById('randBtn');
+  const pick = async () => { btn.click(); await tick(dom, 5); return w.__oot.state.city; };
+  const seen = async n => { const s = new Set(); for(let i = 0; i < n; i++) s.add(await pick()); return [...s].sort(); };
+  ok(btn.textContent === 'random', 'nothing open: ' + btn.textContent);
+  ok(JSON.stringify(await seen(60)) === JSON.stringify(['Florence, Italy', 'Paris, France', 'Rome, Italy', 'Sedona, AZ', 'Tokyo, Japan']), 'everywhere');
+  ok(w.__oot.state.view === 'city', 'lands on the city page');
+  const open = async id => { w.__oot.state.view = 'index'; w.__oot.render(); const e = d.querySelector(`details[data-g="${id}"]`); e.open = true; e.dispatchEvent(new dom.window.Event('toggle')); await tick(dom); };
+  await open('Europe');
+  ok(btn.textContent === 'random in Europe', 'label names the section: ' + btn.textContent);
+  ok(JSON.stringify(await seen(40)) === JSON.stringify(['Florence, Italy', 'Paris, France', 'Rome, Italy']), 'Europe only');
+  await open('Europe/Italy');
+  ok(btn.textContent === 'random in Italy', 'innermost: ' + btn.textContent);
+  const it = await seen(30);
+  ok(JSON.stringify(it) === JSON.stringify(['Florence, Italy', 'Rome, Italy']), 'Italy only: ' + it);
+  let back = 0; let prev = await pick(); for(let i = 0; i < 20; i++){ const c = await pick(); if(c === prev) back++; prev = c; }
+  ok(back === 0, 'never the same city twice in a row');
+  w.__oot.state.view = 'index'; w.__oot.render();
+  const e = d.querySelector('details[data-g="Europe"]'); e.open = false; e.dispatchEvent(new dom.window.Event('toggle')); await tick(dom);
+  ok(btn.textContent === 'random', 'closing the region drops Italy too: ' + btn.textContent);
+  const sel = d.getElementById('kindSel'); sel.value = 'stay'; sel.dispatchEvent(new dom.window.Event('change')); await tick(dom);
+  ok(JSON.stringify(await seen(10)) === JSON.stringify(['Tokyo, Japan']), 'kind filter applies');
+}
+
 // 19. named travel
 {
   const { d } = await app();

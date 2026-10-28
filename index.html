@@ -183,6 +183,7 @@
     <div class="chip" data-rating="-">-</div>
     <div class="chip" data-rating="n">n</div>
     <div class="chip" id="nearBtn">nearest</div>
+    <div class="chip" id="randBtn">random</div>
   </div>
 </header>
 
@@ -220,7 +221,7 @@
 
 <script>
 /* ====== CONFIG ====== */
-const APP_VERSION = "2026.10.28-4";
+const APP_VERSION = "2026.10.28-5";
 const MSAL_CLIENT_ID = "7175d0f0-c775-4157-87de-0d85914a1350";
 const REDIRECT_URI = "https://nameisredacted.github.io/out-of-town/";
 const GRAPH_SCOPES = ["Files.ReadWrite", "User.Read"];
@@ -536,6 +537,8 @@ function render(){
   const main = $('main');
   $('clearQ').style.display = state.query ? '' : 'none';
   $('nearBtn').classList.toggle('active', !!state.near);
+  const sc = randomScope();
+  $('randBtn').textContent = sc ? 'random in ' + sc.split('/').pop() : 'random';
   $('kindSel').classList.toggle('on', !!state.kind);
   document.querySelectorAll('.chip[data-rating]').forEach(c => c.classList.toggle('active', state.ratings.has(c.dataset.rating)));
   const q = norm(state.query);
@@ -622,8 +625,11 @@ function saveOpen(){ try { localStorage.setItem(OPEN_KEY, JSON.stringify([...ope
 $('main').addEventListener('toggle', e => {
   const d = e.target;
   if(!d.matches || !d.matches('details.country, details.sub')) return;
-  if(d.open) openGroups.add(d.dataset.g); else openGroups.delete(d.dataset.g);
+  const id = d.dataset.g;
+  if(d.open === openGroups.has(id)) return;        // a re-render restoring a remembered state
+  if(d.open) openGroups.add(id); else openGroups.delete(id);   // the Set keeps the order they were opened in
   saveOpen();
+  $('randBtn').textContent = randomScope() ? 'random in ' + randomScope().split('/').pop() : 'random';
 }, true);
 
 /* ---------- navigation + filters ---------- */
@@ -655,6 +661,35 @@ document.querySelectorAll('.chip[data-rating]').forEach(c => c.addEventListener(
   render();
 }));
 $('fab').addEventListener('click', () => openForm(null, state.view === 'city' && !state.query ? state.city : ''));
+
+/* ---------- random: a random location (a city, never a single place) ----------
+   Scope is the dropdown most recently opened that is still open and showing (a country inside
+   a closed region does not count), so opening Europe ▸ Italy picks only Italian towns; with
+   nothing open it picks from everywhere. The kind and y / - / n filters apply, every city counts
+   once however many places it has, and the same city never comes up twice in a row. */
+function inScope(city, id){
+  const [r, sub] = id.split('/'), p = placeOf(city);
+  return p.regions.includes(r) && (sub === undefined || p.sub === sub);
+}
+function randomScope(){
+  const pool = [...countByCity(visible()).keys()];
+  const ids = [...openGroups];
+  for(let i = ids.length - 1; i >= 0; i--){
+    const id = ids[i], parent = id.includes('/') ? id.split('/')[0] : null;
+    if(parent && !openGroups.has(parent)) continue;
+    if(pool.some(c => inScope(c, id))) return id;
+  }
+  return '';
+}
+let lastRandom = '';
+$('randBtn').addEventListener('click', () => {
+  const sc = randomScope();
+  let list = [...countByCity(visible()).keys()].filter(c => !sc || inScope(c, sc));
+  if(list.length > 1) list = list.filter(c => c !== lastRandom);
+  if(!list.length) return;
+  lastRandom = list[Math.floor(Math.random() * list.length)];
+  openCity(lastRandom);
+});
 
 /* ---------- nearest: sorts the cities by distance ---------- */
 function position(){
