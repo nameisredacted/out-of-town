@@ -8,14 +8,13 @@
 <meta http-equiv="Expires" content="0">
 <title>travel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..600&family=Newsreader:opsz,wght@6..72,400..500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..600&display=swap" rel="stylesheet">
 <!--MSAL--><script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.30.0/lib/msal-browser.min.js"></script><!--/MSAL-->
 <style>
   /* Same system as eat + drink (its "minimal" pass): one accent, hairlines only, no rounded
-     corners. Blue = tappable, everything else is type. Type (2026.10.28-7): Inter for the
-     working text, Newsreader (a text serif) for the structure — the title, the regions, a
-     city's or a place's name. Contrast comes from the change of face and size, not from bold:
-     nothing on the page is heavier than 600, and headings are 400–500. */
+     corners. Blue = tappable, everything else is type. Type (2026.10.28-8): one face, Geist,
+     everywhere. Hierarchy comes from size, not bold: the title, the regions and a city's or a
+     place's name are larger and regular / medium weight; nothing is heavier than 600. */
   :root{
     color-scheme:light;
     --bg:#ffffff; --text:#111111; --muted:#999999; --muted2:#666666;
@@ -23,9 +22,9 @@
   }
   *{box-sizing:border-box;}
   html,body{background:var(--bg);}
-  body{margin:0;font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-       -webkit-font-smoothing:antialiased;font-size:15px;color:var(--text);font-feature-settings:"cv11";}
-  .serif,h1,.region,.cityhead h2,.sheet h2,.gate h2{font-family:"Newsreader",Georgia,serif;font-feature-settings:normal;}
+  body{margin:0;font-family:"Geist",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+       -webkit-font-smoothing:antialiased;font-size:15px;color:var(--text);}
+  h1,.region,.cityhead h2,.sheet h2,.gate h2{letter-spacing:-.015em;}
   button,input,select,textarea{font-family:inherit;border-radius:0;}
 
   /* header */
@@ -58,7 +57,7 @@
   details.country > summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
   details.country[open] > summary{padding-bottom:4px;}
   details.country[open]{padding-bottom:8px;}
-  .rcount{font-family:"Inter",-apple-system,sans-serif;font-size:13px;font-weight:400;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .rcount{font-size:13px;font-weight:400;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;}
   /* the travel notes' folders: area label ▸ region (a note) ▸ state / country ▸ town */
   .area{font-size:12px;color:var(--muted);padding:22px 0 6px;letter-spacing:.02em;}
   .note + .area{padding-top:8px;}
@@ -73,7 +72,7 @@
   .city .cn{font-size:15px;font-weight:400;color:var(--accent);}
   .city .cc{font-size:12px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums;}
   .back{background:none;border:none;color:var(--accent);font-size:14px;cursor:pointer;padding:10px 0 2px;}
-  .cityhead h2{font-size:26px;font-weight:400;line-height:1.15;margin:6px 0 4px;}
+  .cityhead h2{font-size:26px;font-weight:500;line-height:1.15;margin:6px 0 4px;}
   .cityhead .sub{color:var(--muted);font-size:12px;margin-bottom:4px;}
   .kindhead{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;font-weight:500;color:var(--muted2);
             padding:18px 0 2px;border-bottom:1px solid var(--hair);}
@@ -87,6 +86,8 @@
   /* been = struck through, the way a line is crossed off in Notes: the name keeps its colour,
      a 1px line runs through it, nothing else changes */
   .struck,.item.been .item-name,h2.been{text-decoration:line-through;text-decoration-thickness:1px;}
+  /* a header whose every place is struck is struck too (city, state / country / county, region, area, kind) */
+  .done > span:first-child, .city.done .cn, .area.done{text-decoration:line-through;text-decoration-thickness:1px;}
   .closedtag{color:var(--bad);font-size:11px;text-transform:uppercase;letter-spacing:.06em;border:1px solid var(--bad);
              border-radius:3px;padding:0 4px;margin-left:7px;white-space:nowrap;vertical-align:1px;}
   .item.isclosed .item-name, h2.closed{color:var(--bad);}
@@ -105,7 +106,7 @@
          padding:20px 19px calc(26px + env(safe-area-inset-bottom, 0px));z-index:31;transform:translateY(105%);visibility:hidden;
          transition:transform .2s ease,visibility 0s linear .2s;font-size:14px;}
   .sheet.open{transform:translateY(0);visibility:visible;transition:transform .2s ease;}
-  .sheet h2{margin:0 26px 5px 0;font-size:24px;font-weight:400;line-height:1.2;}
+  .sheet h2{margin:0 26px 5px 0;font-size:24px;font-weight:500;line-height:1.2;}
   .sheet .sub{color:var(--muted2);font-size:14px;margin-bottom:12px;}
   .closedline{color:var(--bad);font-size:13px;margin:2px 0 10px;}
   .close-x{position:absolute;top:14px;right:14px;background:none;border:none;color:var(--muted2);font-size:22px;cursor:pointer;}
@@ -117,9 +118,8 @@
   .field .hint{font-size:11px;color:var(--muted2);margin-top:4px;}
   .val{white-space:pre-wrap;}
   .maplink{color:var(--accent);text-decoration:none;}
-  .beenBtn{display:block;width:100%;padding:11px 0;margin:2px 0 14px;text-align:center;border:1px solid var(--hair);background:none;
-           color:#aaa;font-size:14px;cursor:pointer;}
-  .beenBtn.on{border-color:var(--text);color:var(--text);}
+  .detaillinks{display:flex;gap:18px;margin-top:14px;}
+  .detaillinks .closedtoggle{margin-top:0;}
   /* To Order: the same box as eat + drink — one row per item, "ate it" moves it to ordered */
   .wantrow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--hair);}
   .wantrow:last-of-type{border-bottom:none;}
@@ -182,8 +182,6 @@
       <option value="golf">golf</option>
       <option value="ski">ski</option>
     </select>
-    <div class="chip" data-been="been"><span class="struck">been</span></div>
-    <div class="chip" data-been="not">not yet</div>
     <div class="chip" id="nearBtn">nearest</div>
     <div class="chip" id="randBtn">random</div>
     <div class="chip" id="listBtn">list</div>
@@ -210,7 +208,7 @@
     <option value="eat + drink">eat + drink</option><option value="stay">stay</option><option value="see + do">see + do</option>
     <option value="shop">shop</option><option value="golf">golf</option><option value="ski">ski</option></select></div>
   <div class="field"><label>Category</label><input id="f_category" list="catList" autocomplete="off" autocapitalize="words"></div>
-  <div class="field"><label>Been</label><select id="f_rating"><option value="">not yet</option><option value="x">been — struck through</option></select></div>
+  <div class="field"><label>Struck through</label><select id="f_rating"><option value="">no</option><option value="x">yes</option></select></div>
   <div class="field"><label id="f_toOrderLabel">To Order</label><input id="f_toOrder" autocomplete="off" placeholder="separate items with ;"></div>
   <div class="field"><label id="f_orderedLabel">Ordered</label><textarea id="f_ordered" placeholder="separate items with ;"></textarea></div>
   <div class="field"><label>Notes</label><textarea id="f_notes"></textarea></div>
@@ -230,7 +228,7 @@
     <div><b>&nbsp;&nbsp;&nbsp;&nbsp;carabineiros</b> — indented, or after a dash: to order / to do</div>
     <div><b>Pizzeria Bianco — Phoenix, AZ</b> — one place, one city, no heading</div>
     <div><b>Hotel Sacher #stay</b> — #kind on the line</div>
-    <div><b>~~Joe Beef~~</b> — struck through = been</div>
+    <div><b>~~Joe Beef~~</b> — struck through, as in Notes; an indented <b>~~item~~</b> is done</div>
     <div><b>Bar X // ask for the patio</b> — // starts a note</div>
   </div>
   <textarea id="listText" class="listtext" autocapitalize="none" spellcheck="false" placeholder="Lisbon, Portugal&#10;Cervejaria Ramiro (seafood)&#10;  carabineiros&#10;Pizzeria Bianco — Phoenix, AZ"></textarea>
@@ -244,7 +242,7 @@
 
 <script>
 /* ====== CONFIG ====== */
-const APP_VERSION = "2026.10.28-7";
+const APP_VERSION = "2026.10.28-8";
 const MSAL_CLIENT_ID = "7175d0f0-c775-4157-87de-0d85914a1350";
 const REDIRECT_URI = "https://nameisredacted.github.io/out-of-town/";
 const GRAPH_SCOPES = ["Files.ReadWrite", "User.Read"];
@@ -527,16 +525,15 @@ function fmtMi(m){ return m < 10 ? m.toFixed(1) + ' mi' : Math.round(m).toLocale
 let backend = null;
 let places = [];
 let lastLoad = 0, lastWrite = 0;
-const state = { view: 'index', city: '', query: '', near: null, kind: '', been: '' };   // been: '' | 'been' | 'not'
+const state = { view: 'index', city: '', query: '', near: null, kind: '' };
 let editing = null;        // null = adding
 
-/* the kind and been / not yet filters apply everywhere: index counts, city pages, search, nearest */
+/* the kind filter applies everywhere: index counts, city pages, search, nearest */
 function shown(p){
-  if(state.kind && kindOf(p) !== state.kind) return false;
-  if(state.been === 'been' && !isBeen(p)) return false;
-  if(state.been === 'not' && isBeen(p)) return false;
-  return true;
+  return !state.kind || kindOf(p) === state.kind;
 }
+/* struck through as a whole: at least one place struck and every other one struck or closed */
+function allStruck(list){ return list.some(isBeen) && list.every(p => isBeen(p) || isClosed(p)); }
 const visible = () => places.filter(shown);
 
 /* the city list and the name + city index are rebuilt only when the rows change
@@ -566,10 +563,9 @@ function cityCentroids(){
   return m;
 }
 const SEARCH_CAP = 150;
-/* open places first, struck-through (been) after them, closed last; by name within each */
+/* by name, closed last; a struck place stays where it is, as a crossed-off line does in Notes */
 function sortPlaces(list){
-  return list.slice().sort((a, b) =>
-    (isClosed(a) - isClosed(b)) || (isBeen(a) - isBeen(b)) || a.name.localeCompare(b.name));
+  return list.slice().sort((a, b) => (isClosed(a) - isClosed(b)) || a.name.localeCompare(b.name));
 }
 
 async function loadAll(){
@@ -598,8 +594,9 @@ function placeItem(v, showCity){
     ${todo.length ? `<div class="toorder"><span class="tolabel">${words(v).todo}:</span> ${esc(todo.join(', '))}</div>` : ''}
   </div>`;
 }
+let doneCities = new Set();
 function cityRow(c, count, right, short){
-  return `<div class="city" data-city="${esc(c)}"><span class="cn">${esc(short ? cityName(c) : c)}</span><span class="cc">${right || count}</span></div>`;
+  return `<div class="city${doneCities.has(c) ? ' done' : ''}" data-city="${esc(c)}"><span class="cn">${esc(short ? cityName(c) : c)}</span><span class="cc">${right || count}</span></div>`;
 }
 function countByCity(list){
   const m = new Map();
@@ -615,10 +612,13 @@ function render(){
   const sc = randomScope();
   $('randBtn').textContent = sc ? 'random in ' + sc.split('/').pop() : 'random';
   $('kindSel').classList.toggle('on', !!state.kind);
-  document.querySelectorAll('.chip[data-been]').forEach(c => c.classList.toggle('active', state.been === c.dataset.been));
   const q = norm(state.query);
   const pool = visible();
   const counts = countByCity(pool);
+  const byCity = new Map();
+  pool.forEach(p => { if(p.city) (byCity.get(p.city) || byCity.set(p.city, []).get(p.city)).push(p); });
+  doneCities = new Set([...byCity.entries()].filter(([, l]) => allStruck(l)).map(([c]) => c));
+  const allDone = list => list.length > 0 && list.every(c => doneCities.has(c));
 
   if(q){
     const cities = [...counts.keys()].filter(c => { const p = placeOf(c); return norm(c).includes(q) || norm(p.sub) === q; }).sort((a, b) => a.localeCompare(b));
@@ -637,11 +637,11 @@ function render(){
     const shut = list.filter(isClosed).length;
     const groups = KINDS.map(k => [k, list.filter(v => kindOf(v) === k)]).filter(g => g[1].length);
     const body = groups.length > 1
-      ? groups.map(([k, l]) => `<div class="kindhead"><span>${esc(k)}</span><span>${l.length}</span></div>` + l.map(v => placeItem(v, false)).join('')).join('')
+      ? groups.map(([k, l]) => `<div class="kindhead${allStruck(l) ? ' done' : ''}"><span>${esc(k)}</span><span>${l.length}</span></div>` + l.map(v => placeItem(v, false)).join('')).join('')
       : list.map(v => placeItem(v, false)).join('');
     main.innerHTML = `
       <button class="back" id="backBtn">‹ all cities</button>
-      <div class="cityhead"><h2>${esc(cityName(state.city))}</h2>
+      <div class="cityhead"><h2 class="${allStruck(list) ? 'been' : ''}">${esc(cityName(state.city))}</h2>
         <div class="sub">${esc(whereLine(state.city))} · ${plural(list.length, 'place')}${shut ? ` (${shut} closed)` : ''}</div></div>
       ${body || '<div class="note">nothing here matches the filter.</div>'}
       <button class="addcity" id="addHere">+ add a place in ${esc(cityName(state.city))}</button>`;
@@ -680,15 +680,16 @@ function render(){
     const body = keys.length === 1 ? towns(subs.get(keys[0])) : keys.map(k => {
       const id = r + '/' + k;
       return `<details class="sub" data-g="${esc(id)}"${openGroups.has(id) ? ' open' : ''}>
-        <summary><span>${esc(k)}</span><span class="rcount">${total(subs.get(k)).toLocaleString()}</span></summary>${towns(subs.get(k))}</details>`;
+        <summary class="${allDone(subs.get(k)) ? 'done' : ''}"><span>${esc(k)}</span><span class="rcount">${total(subs.get(k)).toLocaleString()}</span></summary>${towns(subs.get(k))}</details>`;
     }).join('');
     return `<details class="country" data-g="${esc(r)}"${openGroups.has(r) ? ' open' : ''}>
-      <summary class="region"><span>${esc(r)}</span><span class="rcount">${n.toLocaleString()}</span></summary>${body}</details>`;
+      <summary class="region${allDone(keys.flatMap(k => subs.get(k))) ? ' done' : ''}"><span>${esc(r)}</span><span class="rcount">${n.toLocaleString()}</span></summary>${body}</details>`;
   };
   main.innerHTML = `<div class="note">${plural(counts.size, 'city', 'cities')} · ${plural(pool.length, 'place')}</div>` +
     AREAS.map(([area, regions]) => {
       const here = regions.filter(r => tree.has(r));
-      return here.length ? (area ? `<div class="area">${esc(area)}</div>` : '') + here.map(regionHtml).join('') : '';
+      const areaDone = allDone(here.flatMap(r => [...tree.get(r).values()].flat()));
+      return here.length ? (area ? `<div class="area${areaDone ? ' done' : ''}">${esc(area)}</div>` : '') + here.map(regionHtml).join('') : '';
     }).join('');
 }
 
@@ -730,16 +731,12 @@ $('q').addEventListener('keydown', e => {
 });
 $('clearQ').addEventListener('click', () => { $('q').value = ''; state.query = ''; render(); $('q').focus(); });
 $('kindSel').addEventListener('change', () => { state.kind = $('kindSel').value; render(); });
-document.querySelectorAll('.chip[data-been]').forEach(c => c.addEventListener('click', () => {
-  state.been = state.been === c.dataset.been ? '' : c.dataset.been;
-  render();
-}));
 $('fab').addEventListener('click', () => openForm(null, state.view === 'city' && !state.query ? state.city : ''));
 
 /* ---------- random: a random location (a city, never a single place) ----------
    Scope is the dropdown most recently opened that is still open and showing (a country inside
    a closed region does not count), so opening Europe ▸ Italy picks only Italian towns; with
-   nothing open it picks from everywhere. The kind and been / not yet filters apply, every city counts
+   nothing open it picks from everywhere. The kind filter applies, every city counts
    once however many places it has, and the same city never comes up twice in a row. */
 function inScope(city, id){
   const [r, sub] = id.split('/'), p = placeOf(city);
@@ -818,13 +815,13 @@ function openDetail(v){
     <h2 class="${shut ? 'closed' : ''}${been ? ' been' : ''}">${esc(v.name)}${closedTag(v)}</h2>
     <div class="sub">${esc([v.category, v.city, kindOf(v) !== 'eat + drink' ? kindOf(v) : ''].filter(Boolean).join(' · '))}</div>
     ${shut ? `<div class="closedline">${esc(v.closed)} — kept as a record and cannot be edited</div>` : ''}
-    ${shut ? '' : `<button class="beenBtn${been ? ' on' : ''}" id="beenBtn" type="button"><span class="struck">been</span>${been ? '' : ' — not yet'}</button>`}
     ${todoHtml}
     ${doneHtml}
     ${v.notes ? `<div class="field"><label>Notes</label><div class="val">${esc(v.notes)}</div></div>` : ''}
     <div class="field"><label>Address</label><a class="maplink" href="${esc(mapsUrl(v))}" target="_blank" rel="noopener">${esc(v.address || 'open in maps')}</a></div>
     ${shut ? '' : `<div class="btnrow"><button class="btn ghost" id="editBtn">edit</button><button class="btn danger" id="deleteBtn">delete</button></div>`}
-    <button class="closedtoggle" id="closedToggle" type="button">${shut ? 'reopen this place' : 'mark as closed'}</button>`;
+    <div class="detaillinks">${shut ? '' : `<button class="closedtoggle" id="beenBtn" type="button">${been ? 'remove the strikethrough' : '<span class="struck">strike through</span>'}</button>`}
+      <button class="closedtoggle" id="closedToggle" type="button">${shut ? 'reopen this place' : 'mark as closed'}</button></div>`;
   openSheet('detailSheet');
   if($('editBtn')) $('editBtn').onclick = () => openForm(v);
   if($('deleteBtn')) $('deleteBtn').onclick = () => removePlace(v);
@@ -1064,14 +1061,15 @@ function parseList(text){
     if(!raw.trim()){ return; }
     if(INDENT.test(raw) && last){
       const item = raw.replace(INDENT, '').replace(/^[-•*–]\s*/, '').trim();
-      if(item) last.todo.push(item);
+      const struck = item.match(/^~~(.+)~~$/);          // a struck sub-item is done: ordered, not to order
+      if(struck) last.done.push(struck[1].trim()); else if(item) last.todo.push(item);
       return;
     }
     let line = raw.trim().replace(/^[-•*–]\s+/, '');
-    const c = asCity(line);
+    const c = asCity(line.replace(/^~~(.+)~~$/, '$1'));    // a struck town line is still the town
     if(c){ city = c; kind = ''; last = null; return; }
     if(KIND_OF_WORD[norm(line.replace(/:$/, ''))] && !line.includes(' — ')){ kind = KIND_OF_WORD[norm(line.replace(/:$/, ''))]; last = null; return; }
-    const e = { line: n, raw, name: '', city, kind: '', tagKind: '', category: '', notes: '', been: false, todo: [] };
+    const e = { line: n, raw, name: '', city, kind: '', tagKind: '', category: '', notes: '', been: false, todo: [], done: [] };
     let m, own = false;
     if((m = line.match(/\s(?:—|–|@)\s*([^—–@]+)$/))){
       const at = asCity(m[1].trim()) || (looksLikeCity(m[1]) ? canonCity(m[1].trim()) : '');
@@ -1093,22 +1091,39 @@ function parseList(text){
     const k = key(e), was = merged.get(k);
     if(!was){ merged.set(k, e); return; }
     e.todo.forEach(t => { if(!was.todo.some(x => norm(x) === norm(t))) was.todo.push(t); });
+    e.done.forEach(t => { if(!was.done.some(x => norm(x) === norm(t))) was.done.push(t); });
     was.been = was.been || e.been; was.category = was.category || e.category;
     was.notes = [was.notes, e.notes].filter(Boolean).join('; ');
   });
   return { entries: [...merged.values()], loose };
+}
+/* the same place spelled a little differently in the same city: "Granzellas" / "Granzella's",
+   "Madonna Inn" / "The Madonna Inn", "Palm Theater" / "The Palm Theater". One match only. */
+const loose = n => norm(n).replace(/^the /, '').replace(/ /g, '');
+function nearMatch(e){
+  const want = loose(e.name);
+  if(want.length < 4) return null;
+  const hits = places.filter(p => p.city === e.city && (() => {
+    const have = loose(p.name), [a, b] = have.length < want.length ? [have, want] : [want, have];
+    return a === b || (a.length >= 6 && b.startsWith(a));
+  })());
+  return hits.length === 1 ? hits[0] : null;
 }
 /* what send would do with each entry, against the list as it stands */
 function planList(text){
   const { entries, loose } = parseList(text);
   const { byNorm, byKey } = cached();
   const plan = entries.map(e => {
-    const k = key(e), have = byKey.has(k) ? (byKey.get(k) || places.find(p => key(p) === k)) : null;   // null in byKey = a twin pair: take the first
+    const k = key(e);
+    const have = (byKey.has(k) ? (byKey.get(k) || places.find(p => key(p) === k)) : null) || nearMatch(e);   // null in byKey = a twin pair: take the first
     if(!have) return { e, op: 'add', newCity: byNorm.get(norm(e.city)) !== e.city };
     const todo = items(have.toOrder), done = items(have.ordered);
     const fresh = e.todo.filter(t => !todo.concat(done).some(x => norm(x) === norm(t)));
+    const freshDone = e.done.filter(t => !done.some(x => norm(x) === norm(t)));
     const changes = {};
-    if(fresh.length) changes.toOrder = todo.concat(fresh).join('; ');
+    const keepTodo = todo.concat(fresh).filter(t => !freshDone.some(x => norm(x) === norm(t)));
+    if(fresh.length || keepTodo.length !== todo.length) changes.toOrder = keepTodo.join('; ');
+    if(freshDone.length) changes.ordered = done.concat(freshDone).join('; ');
     if(e.been && !isBeen(have)) changes.rating = 'x';
     if(e.category && !have.category) changes.category = e.category;
     if(e.notes && !norm(have.notes).includes(norm(e.notes))) changes.notes = [have.notes, e.notes].filter(Boolean).join('; ');
@@ -1159,7 +1174,8 @@ function renderPlan(){
   const line = p => {
     const e = p.e;
     const what = p.op === 'add' ? `new · ${e.kind}${e.category ? ' · ' + esc(e.category) : ''}${e.todo.length ? ` · ${e.todo.length} ${words(e).todo.toLowerCase()}` : ''}`
-      : p.op === 'update' ? 'on the list — adds ' + [p.fresh.length ? `${p.fresh.length} ${words(p.have).todo.toLowerCase()}` : '', p.changes.rating ? 'been' : '',
+      : p.op === 'update' ? (p.have.name !== e.name ? `= ${esc(p.have.name)} — ` : 'on the list — ') + 'adds ' + [p.fresh.length ? `${p.fresh.length} ${words(p.have).todo.toLowerCase()}` : '',
+          p.changes.ordered ? words(p.have).done.toLowerCase() : '', p.changes.rating ? 'strikethrough' : '',
           p.changes.category ? 'category' : '', p.changes.notes ? 'a note' : ''].filter(Boolean).join(', ')
       : 'on the list already — nothing new';
     return `<div class="planrow${p.op === 'same' ? ' same' : ''}"><span class="${e.been ? 'struck' : ''}">${esc(e.name)}</span><span class="planwhat">${what}</span></div>`;
@@ -1230,7 +1246,7 @@ $('listSend').addEventListener('click', async () => {
         if(backend.live) await sleep(1100);          // OpenStreetMap asks for one request a second
       }
       recs.push({ name: e.name, category: e.category, city: e.city, rating: e.been ? 'x' : '', toOrder: e.todo.join('; '),
-        ordered: '', notes: e.notes, address: '', lat: g ? g.lat : '', lng: g ? g.lng : '', closed: '', kind: e.kind, _line: e.line });
+        ordered: e.done.join('; '), notes: e.notes, address: '', lat: g ? g.lat : '', lng: g ? g.lng : '', closed: '', kind: e.kind, _line: e.line });
     }
     const CHUNK = 40;
     for(let i = 0; i < recs.length; i += CHUNK){

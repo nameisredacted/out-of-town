@@ -307,8 +307,7 @@ function ok(cond, msg){ if(cond){ pass++; } else { fail++; console.log('FAIL:', 
   ok(d.querySelectorAll('.city').length === 1 && d.querySelector('.city').dataset.city === 'Scottsdale, AZ', 'golf filter leaves one city');
   ok(d.querySelector('.note').textContent.includes('1 city · 1 place'), 'filtered count line: ' + d.querySelector('.note').textContent);
   sel.value = ''; sel.dispatchEvent(new dom.window.Event('change')); await tick(dom);
-  d.querySelector('.chip[data-been="been"]').click(); await tick(dom);
-  ok(d.querySelector('.note').textContent.includes('3 places'), 'been filter: ' + d.querySelector('.note').textContent);
+  ok(!d.querySelector('.chip[data-been]') && !d.querySelector('.chip[data-rating]'), 'no been / not yet chips');
 }
 
 // 16. adding a place writes its kind; a blank kind reads as eat + drink
@@ -416,15 +415,15 @@ function ok(cond, msg){ if(cond){ pass++; } else { fail++; console.log('FAIL:', 
   const { d, dom, backend } = await app();
   d.querySelector('.city[data-city="New York, NY"]').click(); await tick(dom);
   const its = [...d.querySelectorAll('.item')];
-  ok(its[0].textContent.includes("Salt Hank") && !its[0].classList.contains('been'), 'not-yet first: ' + its.map(e => e.textContent.trim().split('\n')[0]));
-  ok(its[1].classList.contains('been'), 'old y reads as been, struck');
-  its[1].click(); await tick(dom);
+  ok(its[0].textContent.includes('Bar Pitti') && its[1].textContent.includes("Salt Hank"), 'struck places stay in name order: ' + its.map(e => e.textContent.trim().split('\n')[0]));
+  ok(its[0].classList.contains('been') && !its[1].classList.contains('been'), 'old y reads as struck');
+  its[0].click(); await tick(dom);
   d.getElementById('editBtn').click(); await tick(dom);
   ok(d.getElementById('f_rating').value === 'x', 'form shows been');
   d.getElementById('f_notes').value = 'corner table';
   d.getElementById('saveBtn').click(); await tick(dom);
   ok(backend.table[0][3] === 'y', 'edit kept the old y: ' + backend.table[0][3]);
-  ok(!d.querySelector('.chip[data-rating]') && d.querySelectorAll('.chip[data-been]').length === 2, 'y / - / n chips gone');
+  ok(!d.querySelector('.chip[data-rating]'), 'y / - / n chips gone');
 }
 
 // 31. local: the nine Bay Area counties file under local ▸ county, first; the rest of California stays West
@@ -500,6 +499,43 @@ function ok(cond, msg){ if(cond){ pass++; } else { fail++; console.log('FAIL:', 
   ok(ta.value.startsWith('Katz') && w.localStorage.getItem('oot.list').startsWith('Katz'), 'typed text kept: ' + ta.value);
   await tick(dom, 1400);
   ok(backend.listText.startsWith('Katz'), 'and sent up: ' + backend.listText);
+}
+
+
+// 35. a header is struck when everything under it is: city, kind, state, region, area
+{
+  const rows = [
+    { name: 'A', city: 'Sedona, AZ', rating: 'x' }, { name: 'B', city: 'Sedona, AZ', rating: 'x', kind: 'stay' },
+    { name: 'C', city: 'Phoenix, AZ', rating: 'x' }, { name: 'D', city: 'Phoenix, AZ', closed: 'closed Jan 2026' },
+    { name: 'E', city: 'Bozeman, MT' }, { name: 'F', city: 'Bozeman, MT', rating: 'x' },
+  ];
+  const { d, dom, w } = await app(rows);
+  const row = c => d.querySelector(`.city[data-city="${c}"]`);
+  ok(row('Sedona, AZ').classList.contains('done'), 'all struck: city struck');
+  ok(row('Phoenix, AZ').classList.contains('done'), 'struck + closed: city struck');
+  ok(!row('Bozeman, MT').classList.contains('done'), 'one left: city not struck');
+  const reg = n => [...d.querySelectorAll('summary.region')].find(e => e.textContent.includes(n));
+  ok(reg('Southwest').classList.contains('done') && !reg('West').classList.contains('done'), 'region struck only when complete');
+  ok(!d.querySelector('.area').classList.contains('done'), 'area not struck while West is open');
+  w.__oot.openCity('Sedona, AZ'); await tick(dom);
+  ok(d.querySelector('.cityhead h2').classList.contains('been') && [...d.querySelectorAll('.kindhead')].every(k => k.classList.contains('done')), 'city page heading and kind heads struck');
+  d.querySelector('.item').click(); await tick(dom);
+  ok(d.getElementById('beenBtn').textContent.includes('remove the strikethrough') && !d.querySelector('.beenBtn'), 'strike is a text link, not a button');
+}
+
+// 36. the list: struck sub-items are done; a near spelling in the same city is the same place
+{
+  const rows = seed.concat([{ name: "Granzella's", city: 'Williams, CA', toOrder: 'Fish and chips; olive bar' }, { name: 'The Palm Theater', city: 'San Luis Obispo, CA' }]);
+  const { d, dom, backend } = await app(rows);
+  d.getElementById('listBtn').click(); await tick(dom);
+  const ta = d.getElementById('listText');
+  ta.value = ['~~Williams, CA~~', '~~Granzellas~~', '  ~~Fish and chips~~', 'San Luis Obispo, CA', '~~Palm theater~~'].join('\n');
+  ta.dispatchEvent(new dom.window.Event('input')); await tick(dom, 300);
+  ok(d.getElementById('listSend').textContent.includes('2 updated') && !d.getElementById('listSend').textContent.includes('new'), 'near spellings matched: ' + d.getElementById('listSend').textContent);
+  d.getElementById('listSend').click(); await tick(dom, 100);
+  const g = backend.table.find(r => r[0] === "Granzella's");
+  ok(g[3] === 'x' && g[4] === 'olive bar' && g[5] === 'Fish and chips', 'struck, item moved to ordered: ' + g);
+  ok(backend.table.find(r => r[0] === 'The Palm Theater')[3] === 'x' && backend.table.length === rows.length, 'no new rows');
 }
 
 console.log(`${pass} passed, ${fail} failed`);

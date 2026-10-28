@@ -31,7 +31,7 @@ Vacaville (Solano) stayed.
 `Name | Category | City | Rating | To Order | Ordered | Notes | Address | Lat | Lng | Closed | Kind`
 
 - **Kind** (12th column, 2026.10.27-1) is one of `eat + drink`, `stay`, `see + do`, `shop`,
-  `golf`, `ski`. Blank reads as `eat + drink`. The header's kind select and the been / not yet chips
+  `golf`, `ski`. Blank reads as `eat + drink`. The header's kind select
   filter everything (index counts, city pages, search, nearest); a city page with more than one
   kind splits into a section per kind. The app writes rows at the width the table actually has
   (`tableWidth`, read from the first row), so an 11-column copy of the workbook still works.
@@ -87,12 +87,11 @@ Vacaville (Solano) stayed.
   nothing open = everywhere. The kind and y / - / n filters apply; the same city never comes up
   twice in a row. Open order is the insertion order of `oot.openGroups`; a re-render that
   restores a remembered dropdown does not reorder it.
-- **Type (2026.10.28-7)** — the user found the system font, and its bold headings above all, poor
-  after two passes. New approach: webfonts from Google Fonts. **Inter** (opsz, 400–600) for the
-  working text, **Newsreader** (text serif, 400–500) for structure: the title, region headings
-  (21px, 400), a city's or place's name on its page / sheet. No weight above 600 anywhere; open
-  states and kind headings are 500. Contrast comes from the change of face and size, not bold.
-  Counts stay Inter even inside serif headings.
+- **Type (2026.10.28-8)** — the system font and its bold headings were rejected twice; the serif
+  pass (-7, Newsreader + Inter) was rejected as a "craigslist look", but its **structure was liked**:
+  big regular-weight headings, hierarchy from size not bold. -8 keeps that structure in one sans,
+  **Geist** (Google Fonts, 300–600), everywhere: title 22px/500, regions 21px/400, city and place
+  names on their page / sheet 24–26px/500, tracking -.015em on those. Nothing above 600. No serif.
 - **local (2026.10.28-7)**: `AREAS` starts with a `local` region. A `Town, CA` inside the nine
   Bay Area counties (`BAY_TOWNS`, incorporated cities plus the unincorporated places the notes use)
   files under local ▸ `<County> County`; `Bay Area, CA` = `across the bay area` (Bay Trail, Ridge
@@ -101,7 +100,10 @@ Vacaville (Solano) stayed.
 - **The list (2026.10.28-7)**: header chip `list` (`list N` when it holds lines) opens a sheet with one
   running text written the way the travel notes were — a city line starts a city, a kind line
   (`stay`, `eat`, `see + do`…) sets the kind under it, indented / dashed lines are to-do items,
-  `(…)` category, `#kind`, `Name — City` one-liners, `~~Name~~` = been, ` // ` a note. A live plan
+  `(…)` category, `#kind`, `Name — City` one-liners, `~~Name~~` = struck, an indented `~~item~~` =
+  done (goes to Ordered / Done and leaves To Order), ` // ` a note. A struck town line is just the
+  town. A name that differs from a row in the same city only by "the", spacing or punctuation, or is
+  a 6+ letter prefix of it, is that row (`nearMatch`, one match only); the plan shows `= <row name>`. A live plan
   under the text shows each place's city, region, kind and whether it is new or adds to an
   existing row. **send** updates existing rows (new to-do items, been, a missing category or note;
   each write goes through `liveIndex`), then adds the new ones 40 per POST (`addMany`; Graph
@@ -118,12 +120,17 @@ Vacaville (Solano) stayed.
   lowercase like eat + drink's.
 - **Ordered** replaces eat + drink's Menu Details table: items separated by `; `.
   The detail sheet appends one at a time.
-- **Been** (2026.10.28-7) replaced y / - / n. It lives in the **Rating** column (header not renamed —
-  that needs the workbook rebuilt): any value = been, shown the way a line is crossed off in Apple
-  Notes — the name struck through with a 1px line, nothing else changes. New marks write `x`; the
-  old `y` / `-` / `n` read as been and stay as written until unstruck (an edit through the form
-  keeps them). Header chips `been` (itself struck) / `not yet`, one at a time; the detail sheet has
-  one `been` toggle; the form a Been select. Sort in a city: open, then been, then closed.
+- **Strikethrough** (2026.10.28-7, reworked -8) replaced y / - / n. It lives in the **Rating**
+  column (header not renamed — that needs the workbook rebuilt): any value = struck, shown the way
+  a line is crossed off in Apple Notes — a 1px line through the name, nothing else changes. New
+  marks write `x`; the old `y` / `-` / `n` read as struck and stay as written until unstruck.
+  **The user rejected** been / not yet filter chips and a big been button (-7): no filter, no
+  button. Struck places are **not segregated** — they sort with the rest (by name, closed last).
+  The only control is a small text link beside `mark as closed` (`strike through` / `remove the
+  strikethrough`), plus the form's Struck through select and `~~…~~` in the list.
+  **Roll-up**: any header whose every place is struck is struck too — a town (at least one place
+  struck, all others struck or closed), a state / country / county, a region, an area label, a kind
+  heading and the city name on a city page. Computed from what the kind filter shows.
 - **Closed**: any non-empty value means closed (`closed Jun 2026`). Closed rows sort last,
   carry a CLOSED tag and take no rating or ordered items. The detail sheet's **mark as closed**
   writes `closed <Mon YYYY>`; **reopen this place** clears it. Edit and delete sit on the
@@ -347,3 +354,16 @@ the preview is saved.
   field 7). This session's request for `~/Library/Group Containers/group.com.apple.notes` (and for
   the OneDrive workbook folder) was refused; the deleted travel notes sit in Recently Deleted until
   about 2026-11-26.
+- 2026-10-28 (later): **strikethrough read from Notes** (2026.10.28-8). With the Notes container
+  connected, `NoteStore.sqlite` (+ wal) was copied out and every travel note's attribute runs read
+  (strikethrough = field 7 of the run; lengths are UTF-16 units). Only **41 lines** across all the
+  travel notes are struck (Sedona 4, Chandler 1, LA 2, Seattle 7, Alaska 2, Amtrak 2 in National,
+  local note 22); no checklist ticks. Result per line: `import/struck-notes-20261028.json`. Nine
+  lines end in ` - x` (Dupont Circle Hotel, Casa del Mar, Shutters, Denali, Valdez, George Parks
+  Highway, Fairbanks, Delta Junction, Tunnel Tops) — a separate marker, not treated as struck
+  until the user says what it means. The workbook folder is still not connected (requests refused
+  twice), so the marks go in through the list: **`eat + drink/travel list to paste.txt`** (outside
+  the repo) = the 32 placeable struck lines first (Valdez and Delta Junction as town rows,
+  Granzella's fish and chips as done), then the 582 local places with their 6 struck lines marked.
+  608 entries, none loose. The Amtrak lines (Gold Runner, Capitol Corridor, the California rail
+  pass, San Joaquins) are left out: where the earlier import filed the routes is not known here.
