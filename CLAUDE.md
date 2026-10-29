@@ -141,7 +141,30 @@ Vacaville (Solano) stayed.
   carry a CLOSED tag and take no rating or ordered items. The detail sheet's **mark as closed**
   writes `closed <Mon YYYY>`; **reopen this place** clears it. Edit and delete sit on the
   detail sheet (as in eat + drink), not in the form.
-- **Already ordered (2026.10.28-10).** On an eat + drink place, a To Order item already ordered
+- **To-do items are plain (2026.10.29-1).** The already-ordered strike below is withdrawn: it
+  struck 42 items, e.g. Fish and chips at four London places because it had been had at Oracle Park,
+  and Tacos at five Mexico City taquerias. Strikethrough means one thing: a visited place (and the
+  roll-up). An item done here leaves To Order through **ate it** / **done**. `homeOrdered()` and
+  `EATDRINK_PATH` are gone, so the app no longer reads eat + drink's workbook. Search covers name,
+  category, To Order / To Do, Ordered / Done and Notes.
+- **One field for category and kind (2026.10.29-1).** The form's Kind dropdown is gone; Category
+  decides the kind (`kindFor`): a category already on the list takes the kind most of its places
+  carry (`catKinds`, rebuilt in `refreshLists`; Hotel → stay); on an edit a category used under
+  several kinds keeps the place's own (Market as shop); a kind's own name typed as the category
+  (`stay`, `golf`…) sets the kind and leaves the category blank; a new or blank category is read by
+  `guessKind` from the name and category. `files under <kind>` under the field shows the result and
+  steps to the next kind on a tap (held until the category is changed). The category suggestions
+  carry their kind as the option label. The list uses the same `kindFor` when no `#kind` or kind
+  heading says. The header's kind select stays: it is the filter.
+- **More general places (2026.10.29-1).** The form field is **Place**. Besides `Town, ST` /
+  `Town, Country` it takes a state, country, territory or multi-place tail on its own (`Arizona`,
+  `Italy`, `Puerto Rico`, `Europe`; a bare state code `AZ` becomes `Arizona`) — `wholePlace()` files
+  it under that state / country as **anywhere in Arizona**, listed first among the towns, and the
+  list accepts the same on a line of its own. `Georgia` alone is the US state. A place may also be
+  **blank**: it saves (no "enter a city"), counts, and lists under elsewhere ▸ no country or state
+  given ▸ **no place given**, with its own page; it has no coordinates, so it is not on nearest and
+  never comes up on random.
+- **Already ordered (2026.10.28-10, withdrawn 2026.10.29-1).** On an eat + drink place, a To Order item already ordered
   anywhere — this place's Ordered, another travel place's Ordered, or **eat + drink's Menu Details
   log** (read-only, `homeOrdered()`, at most once a minute, a failed read is silent) — is struck
   through exactly like a visited place (1px line, nothing else changes; 2026.10.28-11 dropped the

@@ -313,17 +313,85 @@ function ok(cond, msg){ if(cond){ pass++; } else { fail++; console.log('FAIL:', 
   ok(!d.querySelector('.chip[data-been]') && !d.querySelector('.chip[data-rating]'), 'no been / not yet chips');
 }
 
-// 16. adding a place writes its kind; a blank kind reads as eat + drink
+// 16. one category field: the kind follows the category (no separate kind dropdown)
 {
-  const { d, dom, backend } = await app();
+  const rows = seed.concat([
+    { name: 'Enchantment Resort', category: 'Resort', city: 'Sedona, AZ', kind: 'stay', lat: '34.9', lng: '-111.8' },
+    { name: 'Hotel Valley Ho', category: 'Hotel', city: 'Scottsdale, AZ', kind: 'stay', lat: '33.5', lng: '-111.9' },
+    { name: 'Copper Market', category: 'Market', city: 'Bisbee, AZ', kind: 'shop', lat: '31.4', lng: '-109.9' },
+    { name: 'Farm Market', category: 'Market', city: 'Tucson, AZ', lat: '32.2', lng: '-110.9' },
+    { name: 'Farm Market 2', category: 'Market', city: 'Tucson, AZ', lat: '32.2', lng: '-110.9' },
+  ]);
+  const { d, dom, w, backend } = await app(rows);
+  ok(!d.getElementById('f_kind'), 'no kind dropdown in the form');
+  const opt = [...d.querySelectorAll('#catList option')].find(o => o.value === 'Hotel');
+  ok(opt && opt.getAttribute('label') === 'stay', 'category suggestions carry their kind: ' + (opt && opt.outerHTML));
+  const type = (id, val) => { const el = d.getElementById(id); el.value = val; el.dispatchEvent(new dom.window.Event('input')); };
   d.getElementById('fab').click();
-  d.getElementById('f_name').value = 'Amangiri';
-  d.getElementById('f_city').value = 'Canyon Point, UT';
-  d.getElementById('f_kind').value = 'stay'; d.getElementById('f_kind').dispatchEvent(new dom.window.Event('change'));
-  ok(d.getElementById('f_toOrderLabel').textContent === 'To Do', 'form wording follows kind');
+  type('f_name', 'Amangiri'); d.getElementById('f_city').value = 'Canyon Point, UT';
+  type('f_category', 'Hotel');
+  ok(d.getElementById('kindCycle').textContent === 'stay', 'a known category sets the kind: ' + d.getElementById('kindCycle').textContent);
+  ok(d.getElementById('f_toOrderLabel').textContent === 'To Do', 'form wording follows the kind');
   d.getElementById('saveBtn').click(); await tick(dom);
-  ok(backend.table.at(-1)[11] === 'stay', 'kind written: ' + backend.table.at(-1));
-  d.querySelector('.city[data-city="Bozeman, MT"]') ;
+  ok(backend.table.at(-1)[11] === 'stay' && backend.table.at(-1)[1] === 'Hotel', 'kind written from the category: ' + backend.table.at(-1));
+  // a new category is read from its words; a kind name typed as the category is the kind
+  d.getElementById('fab').click();
+  type('f_name', 'Troon North'); d.getElementById('f_city').value = 'Scottsdale, AZ';
+  type('f_category', 'Golf Links');
+  ok(d.getElementById('kindCycle').textContent === 'golf', 'new category guessed: ' + d.getElementById('kindCycle').textContent);
+  type('f_category', 'ski');
+  ok(d.getElementById('kindCycle').textContent === 'ski', 'kind name as category');
+  d.getElementById('saveBtn').click(); await tick(dom);
+  ok(backend.table.at(-1)[11] === 'ski' && backend.table.at(-1)[1] === '', 'kind name leaves the category blank: ' + backend.table.at(-1));
+  // tapping the kind steps it and holds it
+  d.getElementById('fab').click();
+  type('f_name', 'Odd Spot'); d.getElementById('f_city').value = 'Sedona, AZ'; type('f_category', 'Bakery');
+  ok(d.getElementById('kindCycle').textContent === 'eat + drink', 'bakery is eat + drink');
+  d.getElementById('kindCycle').click();
+  ok(d.getElementById('kindCycle').textContent === 'stay', 'tap steps to the next kind');
+  type('f_name', 'Odd Spot Two');
+  ok(d.getElementById('kindCycle').textContent === 'stay', 'a held kind survives typing the name');
+  d.getElementById('saveBtn').click(); await tick(dom);
+  ok(backend.table.at(-1)[11] === 'stay', 'held kind written');
+  // an edit keeps the place's own kind for a category used under several kinds
+  w.eval('openDetail(places.find(p => p.name === "Copper Market"))'); await tick(dom);
+  d.getElementById('editBtn').click(); await tick(dom);
+  ok(d.getElementById('kindCycle').textContent === 'shop', 'edit opens on the place kind');
+  type('f_category', 'Market');
+  ok(d.getElementById('kindCycle').textContent === 'shop', 'Market used as shop and eat + drink keeps shop on this place');
+  d.getElementById('saveBtn').click(); await tick(dom);
+  ok(backend.table.find(r => r[0] === 'Copper Market')[11] === 'shop', 'shop kept on save');
+}
+
+// 16b. a place can be as general as a state or a country, or left blank
+{
+  const { d, dom, w, backend } = await app();
+  const add = async (name, city) => {
+    d.getElementById('fab').click();
+    d.getElementById('f_name').value = name; d.getElementById('f_city').value = city;
+    d.getElementById('f_category').value = ''; d.getElementById('f_category').dispatchEvent(new dom.window.Event('input'));
+    d.getElementById('saveBtn').click(); await tick(dom);
+  };
+  await add('Route 66 diners', 'az');
+  ok(backend.table.at(-1)[2] === 'Arizona', 'a bare state code becomes the state: ' + backend.table.at(-1)[2]);
+  await add('Gelato everywhere', 'italy');
+  ok(backend.table.at(-1)[2] === 'Italy', 'a bare country is kept: ' + backend.table.at(-1)[2]);
+  await add('Somewhere good', '');
+  ok(backend.table.at(-1)[0] === 'Somewhere good' && backend.table.at(-1)[2] === '', 'no place at all still saves');
+  ok(!(w.__alerts || []).some(a => /city/i.test(a)), 'no "enter a city" alert: ' + (w.__alerts || []));
+  w.__oot.state.view = 'index'; w.eval('render()'); await tick(dom);
+  const sw = [...d.querySelectorAll('details.country')].find(e => /Southwest/.test(e.querySelector('summary').textContent));
+  const swTowns = [...sw.querySelectorAll('.city .cn')].map(e => e.textContent);
+  ok(swTowns[0] === 'anywhere in Arizona' && swTowns.includes('Sedona'), 'state-wide place listed first under its state: ' + swTowns);
+  const eu = [...d.querySelectorAll('details.country')].find(e => /Europe/.test(e.querySelector('summary').textContent));
+  ok(eu && [...eu.querySelectorAll('.city .cn')].some(e => e.textContent === 'anywhere in Italy'), 'country-wide place filed under Europe');
+  const blank = [...d.querySelectorAll('.city .cn')].find(e => e.textContent === 'no place given');
+  ok(!!blank, 'a place with none is still listed');
+  blank.closest('.city').click(); await tick(dom);
+  ok(d.querySelector('.cityhead h2').textContent === 'no place given' && /Somewhere good/.test(d.getElementById('main').textContent), 'its page opens');
+  // the list: a state or country on its own line starts that place
+  const plan = w.eval('parseList("Italy\\nTrattoria da Enzo\\nArizona\\nThe Hike #see")');
+  ok(plan.entries.length === 2 && plan.entries[0].city === 'Italy' && plan.entries[1].city === 'Arizona', 'list takes a bare state or country: ' + JSON.stringify(plan.entries.map(e => e.city)));
 }
 
 // 17. the page does not boot inside MSAL's hidden renewal iframe
@@ -542,29 +610,23 @@ function ok(cond, msg){ if(cond){ pass++; } else { fail++; console.log('FAIL:', 
 }
 
 
-// 37. already ordered: struck on To Order wherever it was had - here, another city, or eat + drink's log
+// 37. to-do items are plain: nothing struck because it was had somewhere else (2026.10.29-1)
 {
   const rows = seed.concat([
-    { name: 'Tartine Manufactory', category: 'Bakery', city: 'Los Angeles, CA', toOrder: 'sugar cookies; Kumamoto, Humboldt Bay; 6 kumamotos; morning bun', lat: '34.05', lng: '-118.24' },
-    { name: 'Hike Spot', city: 'Bozeman, MT', kind: 'see + do', toOrder: 'Sugar Cookie', lat: '45.68', lng: '-111.04' },
+    { name: 'Tartine Manufactory', category: 'Bakery', city: 'Los Angeles, CA', toOrder: 'sugar cookies; morning bun', lat: '34.05', lng: '-118.24' },
+    { name: 'Fishworks', city: 'London, United Kingdom', toOrder: 'Fish and chips', lat: '51.5', lng: '-0.12' },
   ]);
-  const { d, dom, w, backend } = await (async () => {
-    const backend = memBackend(rows);
-    backend.homeOrdered = async () => [{ venue: 'Hog Island Oyster Co.', location: 'San Francisco, CA', item: 'kumamoto x6' }];
-    const dom = new JSDOM(html, { runScripts: 'dangerously', pretendToBeVisual: true, url: 'https://example.test/',
-      beforeParse(w){ w.OOT_BACKEND = backend; w.alert = () => {}; w.confirm = () => true; w.scrollTo = () => {}; } });
-    await tick(dom, 60);
-    return { dom, w: dom.window, d: dom.window.document, backend };
-  })();
+  const { d, dom, w, backend } = await app(rows);
   w.eval('openDetail(places.find(p => p.name === "Tartine Manufactory"))'); await tick(dom);
-  const cells = [...d.querySelectorAll('#detailBody .wantrow')].map(r => ({ t: r.querySelector('span').textContent, struck: !!r.querySelector('.hadx'), had: (r.querySelector('.hadx') || { title: '' }).title }));
-  const c = re => cells.find(x => re.test(x.t));
-  ok(c(/sugar cookies/).struck && c(/sugar cookies/).had === 'already ordered at Wild Crumb (Bozeman)', 'had in another city: ' + JSON.stringify(c(/sugar cookies/)));
-  ok(c(/6 kumamotos/).struck && /Hog Island Oyster Co\. \(San Francisco\)/.test(c(/6 kumamotos/).had), 'had in eat + drink: ' + JSON.stringify(c(/6 kumamotos/)));
-  ok(!c(/Humboldt/).struck, 'a labelled item is its own thing');
-  ok(!c(/morning bun/).struck, 'never ordered: not struck');
-  w.eval('openDetail(places.find(p => p.name === "Hike Spot"))'); await tick(dom);
-  ok(!d.querySelector('#detailBody .hadx'), 'a to-do on a see + do place is never struck');
+  const texts = [...d.querySelectorAll('#detailBody .wantrow span')].map(x => x.textContent);
+  ok(texts.join('|') === 'sugar cookies|morning bun', 'to-do items listed: ' + texts);
+  ok(!d.querySelector('#detailBody .hadx, #detailBody s, #detailBody del') && !/already ordered/.test(d.getElementById('detailBody').innerHTML), 'nothing struck on the detail sheet');
+  w.eval('closeSheets()');
+  d.getElementById('q').value = 'fish and chips'; d.getElementById('q').dispatchEvent(new dom.window.Event('input')); await tick(dom, 220);
+  ok(/Fishworks/.test(d.getElementById('main').textContent), 'search finds a place by its to-do item');
+  const line = d.querySelector('#main .toorder');
+  ok(line && /To Order: Fish and chips/.test(line.textContent) && !line.querySelector('.hadx'), 'list line shows the item plain: ' + (line && line.innerHTML));
+  ok(!/EATDRINK_PATH|homeOrdered/.test(html), 'eat + drink log no longer read');
   w.eval('openDetail(places.find(p => p.name === "Vino di Sedona"))'); await tick(dom);
   ok(/Restaurant/.test(d.querySelector('#detailBody .sub').textContent), 'a category is shown as entered, nothing hidden: ' + d.querySelector('#detailBody .sub').textContent);
   ok(!backend.log.length, 'nothing written');

@@ -139,9 +139,6 @@
   /* been = struck through, the way a line is crossed off in Notes: the name keeps its colour,
      a 1px line runs through it, nothing else changes */
   .struck,.item.been .item-name,h2.been{text-decoration:line-through;text-decoration-thickness:1px;}
-  /* a To Order item already ordered somewhere (here, another city, or in eat + drink): struck the
-     same way as a visited place - a 1px line, nothing else changes; where it was had is the hover title */
-  .hadx{text-decoration:line-through;text-decoration-thickness:1px;}
   /* a header whose every place is struck is struck too (city, state / country / county, region, area, kind) */
   .done > span:first-child, .city.done .cn, .area.done{text-decoration:line-through;text-decoration-thickness:1px;}
   ::placeholder{color:var(--muted);}
@@ -203,12 +200,10 @@
   <button class="close-x" data-close>&times;</button>
   <h2 id="formTitle">add a place</h2>
   <div class="field"><label>Name</label><input id="f_name" autocomplete="off"></div>
-  <div class="field"><label>City</label><input id="f_city" list="cityList" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="city, state">
-    <div class="hint" id="cityHint">e.g. Sedona, AZ — or Paris, France</div></div>
-  <div class="field"><label>Kind</label><select id="f_kind">
-    <option value="eat + drink">eat + drink</option><option value="stay">stay</option><option value="see + do">see + do</option>
-    <option value="shop">shop</option><option value="golf">golf</option><option value="ski">ski</option></select></div>
-  <div class="field"><label>Category</label><input id="f_category" list="catList" autocomplete="off" autocapitalize="words"></div>
+  <div class="field"><label>Place</label><input id="f_city" list="cityList" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="town, state — or just a state or country">
+    <div class="hint" id="cityHint">Sedona, AZ · Paris, France · or just Arizona, Italy — or leave it blank</div></div>
+  <div class="field"><label>Category</label><input id="f_category" list="catList" autocomplete="off" autocapitalize="words" placeholder="hotel, bakery, museum…">
+    <div class="hint" id="kindHint">files under <button class="linkbtn" id="kindCycle" type="button">eat + drink</button></div></div>
   <div class="field"><label>Struck through</label><select id="f_rating"><option value="">no</option><option value="x">yes</option></select></div>
   <div class="field"><label id="f_toOrderLabel">To Order</label><input id="f_toOrder" autocomplete="off" placeholder="separate items with ;"></div>
   <div class="field"><label id="f_orderedLabel">Ordered</label><textarea id="f_ordered" placeholder="separate items with ;"></textarea></div>
@@ -222,7 +217,7 @@
   <h2>list</h2>
   <div class="sub">write places down as they come — send puts each one in its city. <button class="linkbtn" id="listHelpBtn" type="button">how</button></div>
   <div class="listhelp" id="listHelp" hidden>
-    <div><b>Lisbon, Portugal</b> — a city on its own line starts that city</div>
+    <div><b>Lisbon, Portugal</b> — a city on its own line starts that city (<b>Portugal</b> or <b>Arizona</b> alone works too)</div>
     <div><b>stay</b> — a kind on its own line (eat, stay, see + do, shop, golf, ski) sets the kind below it</div>
     <div><b>Cervejaria Ramiro (seafood)</b> — a place; (…) is its category</div>
     <div><b>&nbsp;&nbsp;&nbsp;&nbsp;carabineiros</b> — indented, or after a dash: to order / to do</div>
@@ -242,7 +237,7 @@
 
 <script>
 /* ====== CONFIG ====== */
-const APP_VERSION = "2026.10.28-12";
+const APP_VERSION = "2026.10.29-1";
 const MSAL_CLIENT_ID = "7175d0f0-c775-4157-87de-0d85914a1350";
 const REDIRECT_URI = "https://nameisredacted.github.io/out-of-town/";
 const GRAPH_SCOPES = ["Files.ReadWrite", "User.Read"];
@@ -251,7 +246,6 @@ const SHEET = "Places";
 const TABLE = "PlacesTable";
 const LIST_PATH = "the list/Food + Drink/Claude/travel list.txt";   // the running list, plain text
 /* eat + drink's workbook: only its ordered log is read, so an item had at home is struck here too */
-const EATDRINK_PATH = "the list/Food + Drink/Claude/Food + Drink.xlsx";
 /* ===================== */
 
 /* Column order of PlacesTable. Every record written lists all of these.
@@ -378,19 +372,7 @@ function graphBackend(){
         { method: 'PUT', headers: { 'Authorization': 'Bearer ' + await token(), 'Content-Type': 'text/plain; charset=utf-8' }, body: text });
       if(!res.ok) throw new Error(`OneDrive list save failed: ${res.status}`);
     },
-    async remove(index){ await graph('DELETE', `${rowsPath}/itemAt(index=${index})`); },
-    /* eat + drink's Menu Details log (Venue | Location | Vendor | Section | Item) - read only */
-    async homeOrdered(){
-      let out = [], next = `https://graph.microsoft.com/v1.0/me/drive/root:/${enc(EATDRINK_PATH)}:/workbook` +
-        `/worksheets('${encodeURIComponent('Menu Details')}')/tables('MenuDetailsTable')/rows`;
-      while(next){
-        const d = await graph('GET', next);
-        out = out.concat(d.value);
-        next = d['@odata.nextLink'] || null;
-      }
-      return out.map(r => r.values[0]).map(v => ({ venue: String(v[0] || ''), location: String(v[1] || ''), item: String(v[4] || '') }))
-        .filter(r => r.venue && r.item);
-    }
+    async remove(index){ await graph('DELETE', `${rowsPath}/itemAt(index=${index})`); }
   };
 }
 
@@ -407,45 +389,11 @@ const items = s => String(s || '').split(/\s*;\s*/).map(x => x.trim()).filter(Bo
 /* a category that says only "restaurant" says nothing: it is not shown or offered */
 const catOf = v => (v && v.category) || '';
 
-/* ---------- already ordered ----------
-   The point of To Order is something new, not the same thing in a second place. An item on a
-   place's To Order that was already ordered - at this place, any other place here, or anywhere
-   in eat + drink's log - is struck through, with where it was had underneath. Nothing is removed.
-   Identity is the item's own text, loosened only for case, accents, punctuation, a plural s and a
-   count ("6 kumamotos" = "kumamoto x6"), so a labelled or regional item ("Kumamoto, Humboldt Bay")
-   only matches the same label. Only eat + drink places are marked; a to-do elsewhere is not a dish. */
-function itemKey(s){
-  return norm(String(s || '').replace(/&/g, ' and '))
-    .replace(/^\d+ (x )?/, '')
-    .replace(/ (x ?\d+|\d+ ?(pc|pcs|piece|pieces)|\d+)$/, '')
-    .split(' ').map(w => w.length > 3 && /[^s]s$/.test(w) ? w.slice(0, -1) : w).join(' ');
-}
-let homeOrdered = [], homeOrderedAt = 0;
-let orderedAt = new Map();   // itemKey -> [{ key, label }]
-function buildOrderedIndex(){
-  orderedAt = new Map();
-  const add = (item, k, label) => {
-    const ik = itemKey(item);
-    if(!ik) return;
-    const at = orderedAt.get(ik) || orderedAt.set(ik, []).get(ik);
-    if(!at.some(x => x.key === k)) at.push({ key: k, label });
-  };
-  places.forEach(p => items(p.ordered).forEach(t => add(t, key(p), p.name + ' (' + cityName(p.city || '') + ')')));
-  homeOrdered.forEach(r => add(r.item, 'home|' + norm(r.venue) + '|' + norm(r.location), r.venue + (r.location ? ' (' + cityName(r.location) + ')' : '')));
-}
-/* "here", "at Zuni Cafe (San Francisco)", "here and at …", "at A, B and 2 more"; '' = never ordered */
-function alreadyOrdered(item, v){
-  if(kindOf(v) !== 'eat + drink') return '';
-  const at = orderedAt.get(itemKey(item));
-  if(!at || !at.length) return '';
-  const here = at.some(x => x.key === key(v));
-  const names = at.filter(x => x.key !== key(v)).map(x => x.label);
-  if(!here && !names.length) return '';
-  const list = names.length > 3 ? names.slice(0, 2).join(', ') + ' and ' + (names.length - 2) + ' more'
-             : names.length > 1 ? names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1] : names.join('');
-  return (here ? 'here' : '') + (here && names.length ? ' and ' : '') + (names.length ? 'at ' + list : '');
-}
-const todoHtml1 = (t, v) => { const w = alreadyOrdered(t, v); return w ? `<span class="hadx" title="already ordered ${esc(w)}">${esc(t)}</span>` : esc(t); };
+/* ---------- to-do items ----------
+   Plain text (2026.10.29-1). The struck "already ordered somewhere" mark of -10 is gone: it struck
+   Fish and chips in London because it had been had at Oracle Park. An item done here leaves To Order
+   through "ate it" / "done" and joins Ordered / Done; an item had somewhere else stays as it is.
+   Strikethrough now means one thing only: a place that has been visited. */
 
 const STATES = {AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',DE:'Delaware',DC:'District of Columbia',FL:'Florida',GA:'Georgia',HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming',PR:'Puerto Rico',VI:'US Virgin Islands',GU:'Guam',AS:'American Samoa',MP:'Northern Mariana Islands',UM:'US Minor Outlying Islands'};
 
@@ -542,6 +490,7 @@ const MULTI = {
 /* "Sedona, AZ" -> { regions: [Southwest], sub: Arizona }; "Istanbul, Turkey" -> { regions: [Europe, Asia], sub: Turkey } */
 function placeOf(city){
   const parts = String(city || '').split(',').map(s => s.trim()).filter(Boolean);
+  if(parts.length === 1){ const w = wholePlace(parts[0]); if(w) return w; }
   if(parts.length < 2) return { regions: ['elsewhere'], sub: NO_PLACE };
   const last = parts[parts.length - 1], st = last.toUpperCase();
   if(TERRITORY_OF[norm(last)]) return { regions: ['Territories'], sub: TERRITORY_OF[norm(last)] };
@@ -550,7 +499,25 @@ function placeOf(city){
   if(MULTI[last]) return { regions: [MULTI[last][0]], sub: MULTI[last][1] };
   return { regions: COUNTRY_REGION[norm(last)] || ['elsewhere'], sub: last };
 }
-function cityName(city){ return city.split(',')[0].trim(); }
+/* A place may be as general as a state, a country or a multi-place tail on its own (2026.10.29-1):
+   "Arizona", "Italy", "Puerto Rico", "Europe". It files under that state or country as
+   "anywhere in Arizona", listed first. A bare two-letter code is a state only in the form
+   (canonCity turns "AZ" into "Arizona"); "Georgia" alone is the US state. */
+const STATE_BY_NAME = {};
+Object.entries(STATES).forEach(([code, name]) => { STATE_BY_NAME[norm(name)] = code; });
+function wholePlace(one){
+  const n = norm(one);
+  if(TERRITORY_OF[n] && one.length > 2) return { regions: ['Territories'], sub: TERRITORY_OF[n], whole: true };
+  const st = STATE_BY_NAME[n];
+  if(st) return { regions: [STATE_REGION[st] || 'National'], sub: STATES[st], whole: true };
+  if(MULTI[one]) return { regions: [MULTI[one][0]], sub: MULTI[one][1], whole: true };
+  if(COUNTRY_REGION[n]) return { regions: COUNTRY_REGION[n], sub: one, whole: true };
+  return null;
+}
+const NO_CITY = 'no place given';
+function cityName(city){ return city ? city.split(',')[0].trim() : NO_CITY; }
+function townLabel(c){ const p = placeOf(c); return !c ? NO_CITY : p.whole && p.sub === c ? 'anywhere in ' + c : cityName(c); }
+const placeTitle = c => !c ? NO_CITY : placeOf(c).whole ? c : cityName(c);
 /* the line under a city's name: "Arizona · Southwest", "Turkey · Europe / Asia", "Canada" (not "Canada · Canada") */
 function whereLine(city){
   const p = placeOf(city), r = p.regions.join(' / ');
@@ -566,6 +533,7 @@ function canonCity(raw){
   const hit = cached().byNorm.get(norm(c));
   if(hit) return hit;
   if(c === c.toLowerCase()) c = c.replace(/\b([a-z])/g, m => m.toUpperCase());
+  if(!c.includes(',') && c.length === 2 && STATES[c.toUpperCase()]) return STATES[c.toUpperCase()];
   return c.replace(/, ([A-Za-z]{2})$/, (m, st) => STATES[st.toUpperCase()] ? ', ' + st.toUpperCase() : m);
 }
 
@@ -627,22 +595,24 @@ function sortPlaces(list){
 }
 
 async function loadAll(){
-  const home = (backend.homeOrdered && Date.now() - homeOrderedAt > 60000)
-    ? backend.homeOrdered().then(r => { homeOrdered = r; homeOrderedAt = Date.now(); }, e => console.warn('eat + drink log not read', e))
-    : null;
   places = await backend.list();
-  if(home) await home;
   lastLoad = Date.now();
   refreshLists();
 }
 function refreshLists(){
   dropCache();
-  buildOrderedIndex();
   $('cityList').innerHTML = allCities().map(c => `<option value="${esc(c)}">`).join('');
+  /* one suggestion per category, labelled with the kind it files under */
   const cats = new Map();
-  places.forEach(p => { const c = catOf(p); if(c) cats.set(c, (cats.get(c) || 0) + 1); });
+  catKinds = new Map();
+  places.forEach(p => {
+    const c = catOf(p).trim(); if(!c) return;
+    cats.set(c, (cats.get(c) || 0) + 1);
+    const k = norm(c), m = catKinds.get(k) || catKinds.set(k, new Map()).get(k);
+    m.set(kindOf(p), (m.get(kindOf(p)) || 0) + 1);
+  });
   $('catList').innerHTML = [...cats.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-    .map(([c]) => `<option value="${esc(c)}">`).join('');
+    .map(([c]) => `<option value="${esc(c)}" label="${esc(topKind(c))}">`).join('');
 }
 
 /* ---------- rendering ---------- */
@@ -654,16 +624,16 @@ function placeItem(v, showCity){
   return `<div class="item${isClosed(v) ? ' isclosed' : ''}${isBeen(v) ? ' been' : ''}" data-key="${esc(key(v))}">
     <div class="item-top"><div class="item-name">${esc(v.name)}${closedTag(v)}</div></div>
     ${sub ? `<div class="item-sub">${esc(sub)}</div>` : ''}
-    ${todo.length ? `<div class="toorder"><span class="tolabel">${words(v).todo}:</span> ${todo.map(t => todoHtml1(t, v)).join(', ')}</div>` : ''}
+    ${todo.length ? `<div class="toorder"><span class="tolabel">${words(v).todo}:</span> ${todo.map(esc).join(', ')}</div>` : ''}
   </div>`;
 }
 let doneCities = new Set();
 function cityRow(c, count, right, short){
-  return `<div class="city${doneCities.has(c) ? ' done' : ''}" data-city="${esc(c)}"><span class="cn">${esc(short ? cityName(c) : c)}</span><span class="cc">${right || count}</span></div>`;
+  return `<div class="city${doneCities.has(c) ? ' done' : ''}" data-city="${esc(c)}"><span class="cn">${esc(short || !c ? townLabel(c) : c)}</span><span class="cc">${right || count}</span></div>`;
 }
 function countByCity(list){
   const m = new Map();
-  list.forEach(p => { if(p.city) m.set(p.city, (m.get(p.city) || 0) + 1); });
+  list.forEach(p => { const c = p.city || ''; m.set(c, (m.get(c) || 0) + 1); });
   return m;
 }
 const plural = (n, one, many) => `${n.toLocaleString()} ${n === 1 ? one : (many || one + 's')}`;
@@ -679,7 +649,7 @@ function render(){
   const pool = visible();
   const counts = countByCity(pool);
   const byCity = new Map();
-  pool.forEach(p => { if(p.city) (byCity.get(p.city) || byCity.set(p.city, []).get(p.city)).push(p); });
+  pool.forEach(p => { const c = p.city || ''; (byCity.get(c) || byCity.set(c, []).get(c)).push(p); });
   doneCities = new Set([...byCity.entries()].filter(([, l]) => allStruck(l)).map(([c]) => c));
   const allDone = list => list.length > 0 && list.every(c => doneCities.has(c));
 
@@ -704,10 +674,10 @@ function render(){
       : list.map(v => placeItem(v, false)).join('');
     main.innerHTML = `
       <button class="back" id="backBtn">‹ all cities</button>
-      <div class="cityhead"><h2 class="${allStruck(list) ? 'been' : ''}">${esc(cityName(state.city))}</h2>
+      <div class="cityhead"><h2 class="${allStruck(list) ? 'been' : ''}">${esc(placeTitle(state.city))}</h2>
         <div class="sub">${esc(whereLine(state.city))} · ${plural(list.length, 'place')}${shut ? ` (${shut} closed)` : ''}</div></div>
       ${body || '<div class="note">nothing here matches the filter.</div>'}
-      <button class="addcity" id="addHere">+ add a place in ${esc(cityName(state.city))}</button>`;
+      <button class="addcity" id="addHere">+ add a place ${state.city ? 'in ' + esc(placeTitle(state.city)) : 'with no place'}</button>`;
     return;
   }
 
@@ -735,7 +705,8 @@ function render(){
   });
   const total = list => list.reduce((a, c) => a + counts.get(c), 0);
   const across = k => k === ACROSS || k === ACROSS_STATES || k === NO_PLACE || k === 'across the bay area';
-  const towns = list => list.map(c => cityRow(c, counts.get(c), null, placeOf(c).sub !== NO_PLACE)).join('');
+  const towns = list => list.slice().sort((a, b) => !!placeOf(b).whole - !!placeOf(a).whole)   // "anywhere in Italy" first
+    .map(c => cityRow(c, counts.get(c), null, placeOf(c).sub !== NO_PLACE)).join('');
   const regionHtml = r => {
     const subs = tree.get(r);
     const keys = [...subs.keys()].sort((a, b) => across(a) - across(b) || a.localeCompare(b));
@@ -818,7 +789,7 @@ function randomScope(){
 let lastRandom = '';
 $('randBtn').addEventListener('click', () => {
   const sc = randomScope();
-  let list = [...countByCity(visible()).keys()].filter(c => !sc || inScope(c, sc));
+  let list = [...countByCity(visible()).keys()].filter(c => c && (!sc || inScope(c, sc)));
   if(list.length > 1) list = list.filter(c => c !== lastRandom);
   if(!list.length) return;
   lastRandom = list[Math.floor(Math.random() * list.length)];
@@ -859,10 +830,7 @@ function mapsUrl(v){
   return 'https://maps.apple.com/?q=' + encodeURIComponent(v.name) + '&address=' + encodeURIComponent(v.address || v.city);
 }
 
-function wantCell(t, v){
-  const where = alreadyOrdered(t, v);
-  return where ? `<span class="hadx" title="already ordered ${esc(where)}">${esc(t)}</span>` : `<span>${esc(t)}</span>`;
-}
+function wantCell(t){ return `<span>${esc(t)}</span>`; }
 function openDetail(v){
   const been = isBeen(v);
   const shut = isClosed(v);
@@ -973,11 +941,45 @@ async function removePlace(v){
   }catch(e){ report(e); }
 }
 
+/* ---------- category and kind: one field (2026.10.29-1) ----------
+   The form had a Kind dropdown and a Category dropdown that said the same thing twice (Hotel /
+   stay, Golf Course / golf, Museum / see + do). Now there is only Category; the kind follows it:
+   - a category already on the list files under the kind most of its places carry (Hotel -> stay);
+     on an edit, a category used under several kinds keeps the place's own (Market stays shop);
+   - a kind's own name typed as the category (stay, golf, see + do…) sets that kind and leaves the
+     category blank;
+   - a new category, or none, is read from the words in it and the name (guessKind);
+   - "files under <kind>" under the field shows the result; tapping it steps to the next kind and
+     holds it, for the rare place the words get wrong. Changing the category lets go of it.
+   The header's kind filter is unchanged: it is a filter, not a field. */
+let catKinds = new Map();          // norm(category) -> Map(kind -> count)
+let formKind = 'eat + drink', kindHeld = false;
+function topKind(cat){
+  const m = catKinds.get(norm(cat));
+  return m ? [...m.entries()].sort((a, b) => b[1] - a[1])[0][0] : '';
+}
+function isKindName(cat){ return KINDS.find(k => norm(k) === norm(cat)) || ''; }
+function kindFor(cat, name, prev){
+  const c = String(cat || '').trim();
+  if(isKindName(c)) return isKindName(c);
+  const m = c && catKinds.get(norm(c));
+  if(m) return prev && m.has(prev) ? prev : topKind(c);
+  if(!c && prev) return prev;
+  return guessKind(name || '', c);
+}
 function syncFormWords(){
-  const w = $('f_kind').value === 'eat + drink' ? WORDS.food : WORDS.other;
+  if(!kindHeld) formKind = kindFor($('f_category').value, $('f_name').value, editing ? kindOf(editing) : state.kind || '');
+  $('kindCycle').textContent = formKind;
+  const w = formKind === 'eat + drink' ? WORDS.food : WORDS.other;
   $('f_toOrderLabel').textContent = w.todo; $('f_orderedLabel').textContent = w.done;
 }
-$('f_kind').addEventListener('change', syncFormWords);
+$('f_category').addEventListener('input', () => { kindHeld = false; syncFormWords(); });
+$('f_name').addEventListener('input', syncFormWords);
+$('kindCycle').addEventListener('click', () => {
+  formKind = KINDS[(KINDS.indexOf(formKind) + 1) % KINDS.length]; kindHeld = true;
+  syncFormWords();
+});
+const CITY_HINT = 'Sedona, AZ · Paris, France · or just Arizona, Italy — or leave it blank';
 function openForm(v, city){
   editing = v || null;
   $('formTitle').textContent = v ? 'edit place' : 'add a place';
@@ -985,7 +987,7 @@ function openForm(v, city){
   ['name','city','category','toOrder','ordered','notes','address']
     .forEach(c => { $('f_' + c).value = src[c] || ''; });
   $('f_rating').value = isBeen(src) ? 'x' : '';
-  $('f_kind').value = kindOf(src);
+  formKind = kindOf(src); kindHeld = !!v;     // an edit keeps the place's kind until the category changes
   syncFormWords();
   openSheet('formSheet');
   if(!v) setTimeout(() => $('f_name').focus(), 50);
@@ -993,8 +995,10 @@ function openForm(v, city){
 $('f_city').addEventListener('blur', () => {
   const c = canonCity($('f_city').value);
   const known = allCities().includes(c);
-  $('cityHint').textContent = !c ? 'e.g. Sedona, AZ — or Paris, France'
-    : known ? `${c} is on the list` : !c.includes(',') ? 'add the state or country — e.g. Sedona, AZ' : `${c} is a new city`;
+  const p = placeOf(c);
+  $('cityHint').textContent = !c ? CITY_HINT
+    : known ? `${c} is on the list` : p.whole ? `files under ${p.sub} as anywhere in ${c}`
+    : !c.includes(',') ? 'add a state or country to file it (Sedona, AZ) — or keep it as it is' : `${c} is a new city`;
 });
 
 /* Coordinates only place a city on the nearest list, so a new row borrows its
@@ -1006,6 +1010,7 @@ async function geocode(rec){
   }
   if(!backend.live) return null;
   const q = rec.address || rec.city;
+  if(!q) return null;
   try{
     const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 4000);
     const res = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(q), { signal: ctl.signal });
@@ -1020,12 +1025,13 @@ async function geocode(rec){
 $('saveBtn').addEventListener('click', async () => {
   const v = editing;   // read before anything can clear it
   const rec = {};
-  ['name','category','rating','toOrder','ordered','notes','address','kind'].forEach(c => { rec[c] = $('f_' + c).value.trim(); });
+  ['name','category','rating','toOrder','ordered','notes','address'].forEach(c => { rec[c] = $('f_' + c).value.trim(); });
+  rec.kind = formKind;
+  if(isKindName(rec.category)) rec.category = '';     // "stay" typed as the category is the kind, not a category
   rec.closed = v ? v.closed || '' : '';
   rec.city = canonCity($('f_city').value);
   rec.rating = rec.rating ? (v && isBeen(v) ? v.rating : 'x') : '';     // an old y / - / n stays as it was while struck
   if(!rec.name){ alert('Enter a name.'); return; }
-  if(!rec.city){ alert('Enter a city.'); return; }
   const twin = places.find(p => key(p) === key(rec) && p !== v);
   if(twin){
     alert(v ? `${twin.name} in ${twin.city} is already on the list. Nothing was changed.`
@@ -1101,6 +1107,7 @@ function guessKind(name, cat){
 }
 /* a line that names a city: one already on the list, or "Town, ST" / "Town, Country" the index can file */
 function asCity(line){
+  if(!line.includes(',') && !/[—–@#()]|~~|\/\//.test(line) && line.trim().length > 2 && wholePlace(canonCity(line))) return canonCity(line);
   if(!line.includes(',') || /[—–@#()]|~~|\/\//.test(line)) return '';
   const c = canonCity(line);
   if(cached().byNorm.get(norm(c)) === c) return c;
@@ -1142,7 +1149,7 @@ function parseList(text){
     if((m = line.match(/\s*\(([^()]+)\)$/))){ e.category = m[1].trim(); line = line.slice(0, m.index).trim(); }
     e.name = line.replace(/^~~|~~$/g, '').trim();
     if(!e.name){ return; }
-    e.kind = e.tagKind || (own ? '' : kind) || guessKind(e.name, e.category);   // a one-line place in another city does not take the heading's kind
+    e.kind = e.tagKind || (own ? '' : kind) || kindFor(e.category, e.name, '');   // a one-line place in another city does not take the heading's kind
     last = e;
     (e.city ? out : loose).push(e);
   });
