@@ -460,3 +460,8 @@ the preview is saved.
   in between, so `archive/Out of Town (pre-generated-cat-clear 20261028).xlsx` was copied back
   byte for byte: all 5,200 categories are back, the 972 `Restaurant` cells stay blank. The cleared
   state is kept as `archive/Out of Town (generated-cat-cleared, reverted 20261028).xlsx`.
+- 2026-10-29: **Maui / Lanai given a state** (user: yes), through the live app (`writeUpdate`, read back
+  by index): 5 rows `Maui` → `Maui, HI` (joining the existing city: Hālua Kukuna, The Road to Hana,
+  Molokini Crater, ʻĪao Valley State Monument, Sheraton Maui Resort & Spa) and 2 rows `Lanai` →
+  `Lanai, HI` (Four Seasons, Manele — island-level, like `Maui, HI` / `Kauai, HI`; `Lanai City, HI` is a
+  separate town row). Coordinates unchanged. Nothing falls to `elsewhere` again.
